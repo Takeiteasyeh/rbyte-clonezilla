@@ -6,6 +6,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <dirent.h>
+#include <malloc.h>
+#include <string.h>
 #include "rbzilla.h"
 
 
@@ -33,6 +35,8 @@ int main(int argc, char *argv[])
 void parse_disk_labels()
 {
     DIR *folder;
+    char fullpath[251];
+    char acutalpath[255];
     struct dirent *each;
 
     folder = opendir("/dev/disk/by-label");
@@ -45,7 +49,14 @@ void parse_disk_labels()
 
     while ((each=readdir(folder)))
     {
-        printf("have: %s\n", each->d_name);
+        if (each->d_name[0] == '.')
+            continue;
+
+        strcpy(fullpath, "/dev/disk/by-label/");
+        strcat(fullpath, each->d_name);
+        realpath(fullpath, acutalpath);
+
+        printf("have: %s [full is %s]\n", each->d_name, acutalpath);
     }
 
     closedir(folder);
