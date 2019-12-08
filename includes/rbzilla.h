@@ -8,6 +8,10 @@
 #define MAX_DISK_LABEL_SIZE 12 // with null terminator
 #define MAX_PARTITIONS_PER_DISK 128 // rfc max of 128 partitions per any disk
 #define NO_FLASH_SOURCES 1 // do not allow drives under 64gib to act as source media
+#define MAX_FILE_READ_SIZE 
+
+int main(int argc, char *argv[]);
+void parse_partitions();
 
 typedef struct Disk
 {
@@ -18,9 +22,9 @@ typedef struct Disk
     unsigned long long int size;
     unsigned long long int free;
     unsigned short int partcount;
-    unsigned short int source = 0;
-    unsigned short int target = 0;
-    unsigned short int flash = 0;
+    unsigned short int source;
+    unsigned short int target;
+    unsigned short int flash;
 
 } Disk;
 

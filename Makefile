@@ -1,6 +1,6 @@
 OBJS	= src/rbzilla.o src/commands.o
 SOURCE	= src/rbzilla.c src/commands.c
-HEADER	= includes/rbzilla.h include/commands.h
+HEADER	= includes/rbzilla.h includes/commands.h
 OUT	= rbzilla
 CC	 = gcc
 FLAGS	 = -std=gnu99 -g -c -Wall
