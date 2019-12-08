@@ -12,11 +12,13 @@
 
 int main(int argc, char *argv[]);
 void parse_partitions();
+void parse_disk_labels();
+
 
 typedef struct Disk
 {
     struct Disk *next, *prev;
-    struct Partition partitions[MAX_PARTITIONS_PER_DISK];
+    struct Partition *headpart;
     char device[6];
     //char label[MAX_DISK_LABEL_SIZE]; // 11 and null terminator
     unsigned long long int size;
@@ -30,8 +32,19 @@ typedef struct Disk
 
 typedef struct Partition
 {
+    struct Partition *next, *prev;
     char device[2];
     char label[MAX_DISK_LABEL_SIZE];
     unsigned long long int size;
     unsigned long long int free;
 } Partition;
+
+typedef struct DevLabel
+{
+    struct DevLabel *next, *previous;
+    char device[6];
+    char label[MAX_DISK_LABEL_SIZE];
+} DevLabel;
+
+Disk create_disk(char *dev);
+Partition create_part(Disk *disk, char *part, char *label);

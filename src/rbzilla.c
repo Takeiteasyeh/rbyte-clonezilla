@@ -5,6 +5,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <dirent.h>
 #include "rbzilla.h"
 
 
@@ -21,10 +22,33 @@
 
 int main(int argc, char *argv[])
 {
-    printf("%s rbzilla mod by Ray Lynk %s\n", C_BLUE, C_CLEAR);
-    printf("%s Checking partitions... %s\n", C_BLUE, C_CLEAR);
+    printf("rbzilla mod by Ray Lynk\n");
+    printf("Loading disk labels..\n");
+    parse_disk_labels();
+    printf("Checking partitions...\n");
+    parse_partitions();
 
     
+}
+void parse_disk_labels()
+{
+    DIR *folder;
+    struct dirent *each;
+
+    folder = opendir("/dev/disk/by-label");
+
+    if (folder == NULL)
+    {
+        printf("error: unable to read /dev/disk/by-label -- aborting.\n");
+        exit(1);
+    }
+
+    while ((each=readdir(folder)))
+    {
+        printf("have: %s\n", each->d_name);
+    }
+
+    closedir(folder);
 }
 
 void parse_partitions()
@@ -32,14 +56,14 @@ void parse_partitions()
     char *line = '\0';
     size_t length = 0;
     __ssize_t read;
-    FILE *f = fopen('/proc/partitions', "r");
+    FILE *f = fopen("/proc/partitions", "r");
 
-    int major, minor, blocks;
-    char *name;
+    int major, minor, blocks, part;
+    char name[20], dev[20];
 
     if (!f)
     {
-        printf("%sError: /proc/partitions is not available%s\n", C_RED, C_CLEAR);
+        printf("Error: /proc/partitions is not available!\n");
         exit(1);
     }
 
@@ -53,7 +77,17 @@ void parse_partitions()
 
         else
         {
-            printf("device: %s\n", name);
+            // if we are root device and not a partition, create as disk
+            if (sscanf(name, "%3s%d", dev, &part) < 2)
+            {
+                printf("device: %s [size: %dGb]\n", name, (blocks / 1048576));
+            }
+            
+            else
+            {
+                printf("partition: %s -> %d [size: %dGb]\n", dev, part, (blocks / 1048576));
+            }
+            
         }
         
 
