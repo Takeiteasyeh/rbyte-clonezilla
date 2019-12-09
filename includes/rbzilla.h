@@ -39,12 +39,13 @@ typedef struct Partition
     unsigned long long int free;
 } Partition;
 
-typedef struct DevLabel
+typedef struct Disklabel
 {
-    struct DevLabel *next, *previous;
+    struct Disklabel *next, *previous;
     char device[6];
     char label[MAX_DISK_LABEL_SIZE];
-} DevLabel;
+} Disklabel;
 
+Disklabel create_label(char *disk, char *label);
 Disk create_disk(char *dev);
 Partition create_part(Disk *disk, char *part, char *label);
