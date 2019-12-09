@@ -33,11 +33,28 @@ int main(int argc, char *argv[])
     parse_disk_labels();
     printf("Checking partitions...\n");
     parse_partitions();
+    printf("we have the following labels:\n");
+    printf("start: %s", dlabel->label);
+ 
+    Disklabel *c = dlabel;
+
+printf("start: %s", c->label);
+
+    if (c == NULL)
+    {
+        printf("disk labels are empty\n");
+    }
+
+    while (c->next != NULL)
+    {
+        printf("got: %s -> %s\n", c->device, c->label);
+        c = c->next;
+    }
 
     
 }
 
-Disklabel create_label(char *dev, char *label)
+void create_label(char *dev, char *label)
 {
     if (dlabel == NULL)
         dlabel = malloc(sizeof(Disklabel));
@@ -49,7 +66,9 @@ Disklabel create_label(char *dev, char *label)
         strncpy(dlabel->label, label, sizeof(dlabel->label));
         dlabel->next = NULL;
         dlabel->previous = NULL;
-        return;
+        printf("create first %s\n", label);
+       // return dlabel;
+       return;
     }
 
     else
@@ -60,12 +79,21 @@ Disklabel create_label(char *dev, char *label)
 
         while (cycle->next != NULL)
         {
+            printf("filled, checking next\n");
             last = cycle;
             cycle = cycle->next;
         }
 
+        printf("create %s\n", label);
         cycle = malloc(sizeof(Disklabel));
-        
+        strncpy(cycle->device, dev, sizeof(cycle->device));
+        strncpy(cycle->label, label, sizeof(cycle->label));
+        cycle->next = NULL;
+        cycle->previous = last;
+        last->next = cycle;
+
+        return;
+        //return *cycle;
     }
     
 
@@ -98,6 +126,7 @@ void parse_disk_labels()
         char devname[4];
         sscanf(acutalpath, "/dev/%3s", devname);
         printf("%s -> %s [%s]\n", acutalpath, devname, each->d_name);
+        create_label(devname, each->d_name);
     }
 
     closedir(folder);

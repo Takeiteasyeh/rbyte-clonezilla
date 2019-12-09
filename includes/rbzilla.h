@@ -46,6 +46,6 @@ typedef struct Disklabel
     char label[MAX_DISK_LABEL_SIZE];
 } Disklabel;
 
-Disklabel create_label(char *disk, char *label);
+void create_label(char *disk, char *label);
 Disk create_disk(char *dev);
 Partition create_part(Disk *disk, char *part, char *label);
