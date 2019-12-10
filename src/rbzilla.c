@@ -10,21 +10,9 @@
 #include <string.h>
 #include "rbzilla.h"
 
-
-#define GREEN(c) "\x1b32m" c "\x1b[0m"
-#define RED(c) "\x1b31m" c "\x1b[0m"
-#define BLUE(c) "\x1b34m" c "\x1b[0m"
-#define YELLOW(c) "\x1b33m" c "\xbv[0m"
-
-#define C_GREEN  "\x1b32m"
-#define C_RED    "\x1b31m"
-#define C_BLUE   "\x1b34m"
-#define C_YELLOW "\x1b33m"
-#define C_CLEAR "\x1b[0m"
-
 Disk *dheader;
 Partition *pheader;
-Disklabel *dlabel;
+Disklabel *labelarray[10*sizeof(Disklabel)];
 
 int main(int argc, char *argv[])
 {
@@ -34,68 +22,25 @@ int main(int argc, char *argv[])
     printf("Checking partitions...\n");
     parse_partitions();
     printf("we have the following labels:\n");
-    printf("start: %s", dlabel->label);
+
+    for (int i = 0; i < 10; i++)
+    {
+        if (labelarray[i] == NULL)
+            break;
+
+        printf("label: %s\n", labelarray[i]->label);
+    }
  
-    Disklabel *c = dlabel;
-
-printf("start: %s", c->label);
-
-    if (c == NULL)
-    {
-        printf("disk labels are empty\n");
-    }
-
-    while (c->next != NULL)
-    {
-        printf("got: %s -> %s\n", c->device, c->label);
-        c = c->next;
-    }
-
-    
 }
 
-void create_label(char *dev, char *label)
+Disklabel *create_label(char *dev, char *label)
 {
-    if (dlabel == NULL)
-        dlabel = malloc(sizeof(Disklabel));
+    Disklabel *dlabel = malloc(sizeof(Disklabel));
 
-    // check if we are the first label
-    if (strlen(dlabel->device) == 0)
-    {
-        strncpy(dlabel->device, dev, sizeof(dlabel->device));
-        strncpy(dlabel->label, label, sizeof(dlabel->label));
-        dlabel->next = NULL;
-        dlabel->previous = NULL;
-        printf("create first %s\n", label);
-       // return dlabel;
-       return;
-    }
+    strncpy(dlabel->device, dev, sizeof(dlabel->device));
+    strncpy(dlabel->label, label, sizeof(dlabel->label));
 
-    else
-    {
-        Disklabel *cycle;
-        Disklabel *last;
-        cycle = dlabel;
-
-        while (cycle->next != NULL)
-        {
-            printf("filled, checking next\n");
-            last = cycle;
-            cycle = cycle->next;
-        }
-
-        printf("create %s\n", label);
-        cycle = malloc(sizeof(Disklabel));
-        strncpy(cycle->device, dev, sizeof(cycle->device));
-        strncpy(cycle->label, label, sizeof(cycle->label));
-        cycle->next = NULL;
-        cycle->previous = last;
-        last->next = cycle;
-
-        return;
-        //return *cycle;
-    }
-    
+    return dlabel;
 
 }
 
@@ -110,9 +55,13 @@ void parse_disk_labels()
 
     if (folder == NULL)
     {
-        printf("error: unable to read /dev/disk/by-label -- aborting.\n");
-        exit(1);
+        printf("!! warning: unable to read /dev/disk/by-label\n");
+        printf("!! warning: probably no install source, or, install source not labeled.\n");
+        printf("!! warning: if using source, set label to 'Windows'\n");
+        return;
     }
+
+    int pos = 0;
 
     while ((each=readdir(folder)))
     {
@@ -126,7 +75,11 @@ void parse_disk_labels()
         char devname[4];
         sscanf(acutalpath, "/dev/%3s", devname);
         printf("%s -> %s [%s]\n", acutalpath, devname, each->d_name);
-        create_label(devname, each->d_name);
+        Disklabel *label = malloc(sizeof(Disklabel));
+        
+        label = create_label(devname, each->d_name);
+        labelarray[pos] = label;
+        pos++;
     }
 
     closedir(folder);
@@ -166,7 +119,7 @@ void parse_partitions()
             {
                 // if we are smaller than 64gib assume we are a flash drive
                 // and not an intended target.
-                if ((blocks / 1048576) < 64)
+                if ((blocks / 1048576) < 50)
                 {
                     printf("%s - skipping flash usb\n", dev);
                     continue;
