@@ -13,6 +13,12 @@
 Disk *dheader;
 Partition *pheader;
 Disklabel *labelarray[10*sizeof(Disklabel)];
+char source[3];
+char destination[3];
+size_t sourcesize;
+size_t destsize;
+
+int multiplesource=0;
 
 int main(int argc, char *argv[])
 {
@@ -75,6 +81,23 @@ void parse_disk_labels()
         char devname[4];
         sscanf(acutalpath, "/dev/%3s", devname);
         printf("%s -> %s [%s]\n", acutalpath, devname, each->d_name);
+           // check if source labeled Windows
+    if (strcmp(each->d_name, "Windows"))
+    {
+        if (multiplesource != 0)
+        {
+            printf("!! warning: multiple 'Windows' partitions (have you already cloned?)\n");
+        }
+
+        else
+        {
+            strcpy(source, devname);
+            printf("Found source label at %s\n", devname);
+            multiplesource = 1;
+        }
+        
+    }
+
         Disklabel *label = malloc(sizeof(Disklabel));
         
         label = create_label(devname, each->d_name);
