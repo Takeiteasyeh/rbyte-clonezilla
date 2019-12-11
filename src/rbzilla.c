@@ -13,20 +13,29 @@
 Disk *dheader;
 Partition *pheader;
 Disklabel *labelarray[10*sizeof(Disklabel)];
-char source[3];
-char destination[3];
+char source[4];
+char *destination;
 size_t sourcesize;
 size_t destsize;
+short int labelcount=0;
 
-int multiplesource=0;
+int multiplesource=0; // deprecate
 
 int main(int argc, char *argv[])
 {
+   // source = malloc(4);
     printf("rbzilla mod by Ray Lynk\n");
     printf("Loading disk labels..\n");
     parse_disk_labels();
     printf("Checking partitions...\n");
     parse_partitions();
+
+    if (labelcount == 0)
+        printf("!! notice: no disk labels detected. 'Windows' is expected source.\n");
+    
+    else
+        printf("found %d partition labels.\n", labelcount);
+
     printf("we have the following labels:\n");
 
     for (int i = 0; i < 10; i++)
@@ -81,29 +90,38 @@ void parse_disk_labels()
         char devname[4];
         sscanf(acutalpath, "/dev/%3s", devname);
         printf("%s -> %s [%s]\n", acutalpath, devname, each->d_name);
-           // check if source labeled Windows
-    if (strcmp(each->d_name, "Windows"))
-    {
-        if (multiplesource != 0)
-        {
-            printf("!! warning: multiple 'Windows' partitions (have you already cloned?)\n");
-        }
 
-        else
+           // check if source labeled Windows
+        if (strcmp(each->d_name, "Windows"))
         {
-            strcpy(source, devname);
-            printf("Found source label at %s\n", devname);
-            multiplesource = 1;
-        }
-        
-    }
+            //printf("debug: found source start");
+            if (source[0] != NULL)
+            {
+                printf("!!\n!! warning: source is already defined { have you already cloned? }\n!!\n");
+            }
+
+            else if (multiplesource != 0)
+            {
+                printf("!! warning: multiple 'Windows' partitions (have you already cloned?)\n");
+            }
+
+             else
+             {
+                 strcpy(source, devname);
+                 printf("Found source label at %s\n", devname);
+                 multiplesource = 1;
+             }
+         }
 
         Disklabel *label = malloc(sizeof(Disklabel));
-        
+            
         label = create_label(devname, each->d_name);
         labelarray[pos] = label;
         pos++;
     }
+
+    // this is the total count of labels for show-back purposes mostly.
+    labelcount = pos;
 
     closedir(folder);
 }
@@ -153,7 +171,7 @@ void parse_partitions()
             
             else
             {
-                printf("partition: %s -> %d [size: %dGb]\n", dev, part, (blocks / 1048576));
+                //printf("partition: %s -> %d [size: %dGb]\n", dev, part, (blocks / 1048576));
             }
             
         }
