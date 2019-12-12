@@ -10,16 +10,16 @@
 #include <string.h>
 #include "rbzilla.h"
 
+#define DEBUG
+
 Disk *dheader;
 Partition *pheader;
 Disklabel *labelarray[10*sizeof(Disklabel)];
 char source[4];
-char *destination;
-size_t sourcesize;
-size_t destsize;
+char destination[4];
+int sourcesize;
+int destsize;
 short int labelcount=0;
-
-int multiplesource=0; // deprecate
 
 int main(int argc, char *argv[])
 {
@@ -36,6 +36,7 @@ int main(int argc, char *argv[])
     else
         printf("found %d partition labels.\n", labelcount);
 
+#ifdef DEBUG
     printf("we have the following labels:\n");
 
     for (int i = 0; i < 10; i++)
@@ -45,6 +46,7 @@ int main(int argc, char *argv[])
 
         printf("label: %s\n", labelarray[i]->label);
     }
+#endif
  
 }
 
@@ -89,27 +91,23 @@ void parse_disk_labels()
 
         char devname[4];
         sscanf(acutalpath, "/dev/%3s", devname);
+#ifdef DEBUG
         printf("%s -> %s [%s]\n", acutalpath, devname, each->d_name);
-
+#endif
            // check if source labeled Windows
         if (strcmp(each->d_name, "Windows"))
         {
             //printf("debug: found source start");
-            if (source[0] != NULL)
+            if (strlen(source) == 3)
             {
                 printf("!!\n!! warning: source is already defined { have you already cloned? }\n!!\n");
-            }
-
-            else if (multiplesource != 0)
-            {
-                printf("!! warning: multiple 'Windows' partitions (have you already cloned?)\n");
             }
 
              else
              {
                  strcpy(source, devname);
                  printf("Found source label at %s\n", devname);
-                 multiplesource = 1;
+                // multiplesource = 1;
              }
          }
 
@@ -134,9 +132,7 @@ void parse_partitions()
     FILE *f = fopen("/proc/partitions", "r");
 
     int major, minor, blocks, part;
-    short int have_source = 0;
-
-    char name[20], dev[20];
+    char name[20], dev[4];
 
     if (!f)
     {
@@ -155,18 +151,50 @@ void parse_partitions()
 
         else
         {
+            // stop doing this calc over and over again plzkthx
+            int gibsize = blocks / 1048576;
+
             // if we are root device and not a partition, create as disk
             if (sscanf(name, "%3s%d", dev, &part) < 2)
             {
-                // if we are smaller than 64gib assume we are a flash drive
+                // if we are smaller than 50gib assume we are a flash drive
                 // and not an intended target.
+               /** do we really care to filter small drives?
                 if ((blocks / 1048576) < 50)
                 {
+#ifdef DEBUG
                     printf("%s - skipping flash usb\n", dev);
+#endif
                     continue;
+                } */ // do we really care atm?
+#ifdef DEBUG
+                printf("device: %s [size: %dGb]\n", name, gibsize);
+#endif
+                // if you change this comparison you will probably also want to modify
+                // the proceeding else if to check if target is also the source drive or not
+                // which is undefined behaviour
+                if (strcmp(dev, source))
+                    sourcesize = gibsize;
+
+                // and probably the one after this one too
+                else if (strlen(destination) == 3)
+                {
+                    printf("another target exists: %s [%dGB] -- why make this difficult, user? :P \n", dev, gibsize);
                 }
 
-                printf("device: %s [size: %dGb]\n", name, (blocks / 1048576));
+                // check for a disk that matches our sources size, that ISNT the source device
+                //debug: change this to exclude the 64gib drive after testing.
+                // we are splitting this block up as to only run the size calculation in one cycle.
+                else if (gibsize == sourcesize || gibsize == 298)
+                {
+
+                        strcpy(destination, dev);
+                        destsize = sourcesize;
+                        printf("found target: %s [%dGB]", name, sourcesize);
+                        continue;
+                    
+
+                }
             }
             
             else
