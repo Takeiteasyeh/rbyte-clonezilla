@@ -8,9 +8,10 @@
 #include <dirent.h>
 #include <malloc.h>
 #include <string.h>
+#include <unistd.h>
 #include "rbzilla.h"
 
-#define DEBUG
+//#define DEBUG
 
 Disklabel *labelarray[10*sizeof(Disklabel)];
 char source[4];
@@ -77,6 +78,34 @@ int main(int argc, char *argv[])
  printf("We are ready to clone %s -> %s\nPlease input 'Y' to continue (or N, i guess..:P):",
     source, destination);
     start_color(RESET);
+
+	//char input = getchar();
+	char cmd[300];
+	sprintf(cmd, ZILLA_COMMAND, source, destination);
+	
+	while (1)
+	{
+		char input = getchar();
+
+		printf("\n");
+
+		switch (input)
+		{
+			case 'y':
+			case 'Y': printf("Execute: %s\n", cmd);
+				system(cmd);
+				exit(1); // no reach
+			
+			case 'n':
+			case 'N': printf("Abort; Swapping to fallback.\n");
+					system(ZILLA_FALLBACK);
+					exit(1);
+
+			default:
+				printf("what you just say to me? try 'Y' or 'N': ");
+				break;
+		}
+	}
 }
 
 Disklabel *create_label(char *dev, char *label)
@@ -173,38 +202,72 @@ void parse_disk_labels()
                     char *dvendor;
                     char formatted[100];
 					char *buffer;
+					char *pnewline;
 
                     sprintf(formatted, SRC_MODEL, devname);
                     checker = fopen(formatted, "r");
 					
 					if (checker == NULL)
 					{
+						dmodel = malloc(8);
 						dmodel = "unknown";
 					}
 
 					else
 					{
 						getline(&buffer, &length, checker);
-						sscanf(buffer, "%s\n", &dmodel);
-                    	fclose(checker);
+						pnewline = strchr(buffer, '\n');
+
+						if (pnewline != NULL)
+						{
+							strcpy(pnewline, "");
+						}
+
+						fclose(checker);
+
+						dmodel = malloc(sizeof(buffer)); // buffer already has null term
+						strcpy(dmodel, buffer);
+                    	
 					}
 					
-					buffer = NULL;
+					strcpy(buffer, "");
                     sprintf(formatted, SRC_VENDOR, devname);
                     checker = fopen(formatted, "r");
 
 					if (checker == NULL)
 					{
+						dvendor = malloc(8);
 						dvendor = "unknown";
 					}
 
 					else
 					{
 						getline(&buffer, &length, checker);
-						sscanf(buffer, "%s\n", &dvendor);
+						
+						pnewline = strchr(buffer, '\n');
+
+						if (pnewline != NULL)
+						{
+							strcpy(pnewline, "");
+						}
+
                     	fclose(checker);
+
+						dvendor = malloc(sizeof(buffer)); // already has null term
+						strcpy(dvendor, buffer);
 					}
 					
+					// check if we need to increase our size
+					if ((sizeof(dvendor) + sizeof(dmodel) + 2) > (sizeof(sourcetype) - 4))
+					{
+						if (realloc(sourcetype, (sizeof(dvendor) + sizeof(dmodel) + 5)) == NULL)
+						{
+							start_color(RED);
+							printf("XX-> error: unable to allocate sourcetype string memory\n");
+							start_color(RESET);
+							exit(1);
+						}
+					}
 
                     sprintf(sourcetype, "%s -> %s", dvendor, dmodel);
 
@@ -252,7 +315,7 @@ void parse_partitions()
     FILE *f = fopen("/proc/partitions", "r");
 
     int major, minor, blocks, part;
-    char name[20], dev[4];
+    char name[4], dev[4];
 
     if (!f)
     {
@@ -312,13 +375,17 @@ void parse_partitions()
                     char *dmodel;
                     char *dvendor;
                     char formatted[100];
+					char *buffer;
+					char *pnewline;
 
+					buffer = malloc(100);
                     sprintf(formatted, SRC_MODEL, dev);
                     // assign and check for value
                     checker = fopen(formatted, "r");
                     
                     if (checker == NULL)
                     {
+						dmodel = malloc(8);
                         strcpy(dmodel, "unknown");
                     }
 
@@ -339,7 +406,16 @@ void parse_partitions()
 
                     else
                     {
-                        getline(&dvendor, &length, checker);
+                        getline(&buffer, &length, checker);
+						pnewline = strchr(buffer, '\n');
+
+						if (pnewline != NULL)
+						{
+							strcpy(pnewline, "");
+						}
+
+						dvendor = malloc(sizeof(buffer)); // already has null term
+						strcpy(dvendor, buffer);
                         fclose(checker);
                     }
 
