@@ -10,10 +10,14 @@
 #include <string.h>
 #include <unistd.h>
 #include "rbzilla.h"
+#include "diskinfo.h"
 
-//#define DEBUG
+#define DEBUG
 
 Disklabel *labelarray[10*sizeof(Disklabel)];
+Disk *sourcedisk;
+Disk *targetdisk;
+
 char source[4];
 char destination[4];
 char sourcetype[100];
@@ -29,7 +33,8 @@ int main(int argc, char *argv[])
     printf("rbzilla mod by Ray Lynk - rlynk@bacon.place\n");
     start_color(RESET);
     printf("Parsing disk(s) information...\n");
-    parse_disk_labels();
+	parse_disk_info();
+  //  parse_disk_labels();
     parse_partitions();
 
     if (labelcount == 0)
@@ -118,7 +123,72 @@ Disklabel *create_label(char *dev, char *label)
     return dlabel;
 
 }
+void parse_disk_info()
+{
+	// start by getting a list of partitions to look through
+	FILE *p_file;
+	char *line = NULL;
+	size_t length;
+	size_t read;
 
+	p_file = popen("cat /proc/partitions", "r");
+
+	if (!p_file)
+	{
+		start_color(RED);
+		printf("XX-> error: unable to parse /proc/partitions\n");
+		exit(0);
+	}
+
+	int major, minor, blocks;
+	char device[4];
+	char rootdev[4];
+	Disk *s_disk;
+
+	while ((read = getline(&line, &length, p_file)) != -1)
+	{
+		int root_size;
+		char root[4];
+		int part;
+		_diskinfo *di;
+
+		if (sscanf(line, "%d %d %d %s\n", &major, &minor, &blocks, device) == 4)
+		{
+			// are we a root device?
+			if (sscanf(device, "%s%d", root, &part) < 2)
+			{
+				strcpy(rootdev, device);
+				s_disk = malloc(sizeof(Disk));
+
+				strcpy(s_disk->device, device);
+				s_disk->size_gb = (blocks / 1048576);
+
+				di = get_disk_info(device);
+
+				if (di == NULL)
+				{
+					printf("error getting disk info\n");
+				}
+
+				else
+				{
+					printf("got vendor: %s\n", di->vendor);
+				}
+				
+			}
+
+			else
+			{
+				/* code */
+			}
+			
+		}
+
+		printf("read: %s", line);
+	}
+
+	pclose(p_file);
+}
 void parse_disk_labels()
 {
     DIR *folder;
@@ -355,7 +425,7 @@ void parse_partitions()
                     sourcesize = gibsize;
 
                 // and probably the one after this one too
-                else if (strlen(destination) == 3)
+                else if ((strlen(destination) == 3) && (gibsize == sourcesize))
                 {
                     start_color(RED);
                     printf("XX-> another target exists: %s [%dGB] -- why make this difficult, user? :P \n", dev, gibsize);

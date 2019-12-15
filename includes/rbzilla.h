@@ -5,8 +5,8 @@
 #define YES 1
 #define NO 0
 
-#define ZILLA_FALLBACK "/usr/sbin/ocs-onthefly"
-#define ZILLA_COMMAND "/usr/sbin/ocs-onthefly -g auto -e1 auto -e2 -r -j2 -sfsck -pa poweroff -f %s -t %s" // source and target
+#define ZILLA_FALLBACK "sudo /usr/sbin/ocs-onthefly -x"
+#define ZILLA_COMMAND "sudo /usr/sbin/ocs-onthefly -g auto -e1 auto -e2 -r -j2 -sfsck -pa poweroff -f %s -t %s" // source and target
 #define MAX_DISK_LABEL_SIZE 12 // with null terminator
 #define MAX_PARTITIONS_PER_DISK 128 // rfc max of 128 partitions per any disk
 #define NO_FLASH_SOURCES 1 // do not allow drives under 64gib to act as source media
@@ -26,6 +26,7 @@
 int main(int argc, char *argv[]);
 void parse_partitions();
 void parse_disk_labels();
+void parse_disk_info();
 void start_color(int color);
 void end_color();
 
@@ -33,9 +34,12 @@ void end_color();
 typedef struct Disk
 {
     char device[4];
+	char vendor[100];
+	char model[100];
+	char serial[100];
 
     //char label[MAX_DISK_LABEL_SIZE]; // 11 and null terminator
-    unsigned long long int size;
+    unsigned long long int size_gb;
     unsigned short int partcount;
     unsigned short int source;
     unsigned short int target;
