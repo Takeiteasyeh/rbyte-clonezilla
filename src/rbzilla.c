@@ -15,8 +15,8 @@
 #define DEBUG
 
 Disklabel *labelarray[10*sizeof(Disklabel)];
-Disk *sourcedisk;
-Disk *targetdisk;
+_diskinfo *sourcedisk;
+_diskinfo *targetdisk;
 
 char source[4];
 char destination[4];
@@ -141,9 +141,9 @@ void parse_disk_info()
 	}
 
 	int major, minor, blocks;
-	char device[4];
-	char rootdev[4];
-	Disk *s_disk;
+	char device[5];
+	char rootdev[5];
+	_diskinfo *s_disk;
 
 	while ((read = getline(&line, &length, p_file)) != -1)
 	{
@@ -155,7 +155,7 @@ void parse_disk_info()
 		if (sscanf(line, "%d %d %d %s\n", &major, &minor, &blocks, device) == 4)
 		{
 			// are we a root device?
-			if (sscanf(device, "%s%d", root, &part) < 2)
+			if (sscanf(device, "%3s%1d", root, &part) != 2)
 			{
 				strcpy(rootdev, device);
 				s_disk = malloc(sizeof(Disk));
@@ -163,6 +163,7 @@ void parse_disk_info()
 				strcpy(s_disk->device, device);
 				s_disk->size_gb = (blocks / 1048576);
 
+				//printf("requesting disk info for %s\n", device);
 				di = get_disk_info(device);
 
 				if (di == NULL)
@@ -172,19 +173,61 @@ void parse_disk_info()
 
 				else
 				{
-					printf("got vendor: %s\n", di->vendor);
+					strcpy(s_disk->vendor, di->vendor);
+					strcpy(s_disk->model, di->model);
+					strcpy(s_disk->serial, di->serial);
+					s_disk->is_usb = di->is_usb;
+
+					//printf("got d: %s v: %s m: %s u: %s\n", di->device, di->vendor, di->model, di->is_usb ? "yes" : "no");
+					//printf("is usb: %s", di->is_usb ? "yes" : "no");
 				}
 				
 			}
 
+			// not the root device
 			else
 			{
-				/* code */
+				//printf("not root device: %s\n", device);
+				di = get_disk_info(device);
+
+				if (di == NULL)
+				{
+					printf("no luck reading info for %s\n", device);
+				}
+
+				// check for Windows source label
+				//printf("checking '%s' for label\n", di->label);
+
+				if (strcmp(di->label, "Windows") == 0)
+				{
+					// check if we already have a source size from another entry
+					if (sourcesize > 0)
+					{
+						start_color(YELLOW);
+						printf("** notice: multiple source labels detected. Clone already completed?");
+
+						if (di->is_usb)
+							printf("** notice: %s (usb device) is probably original source.", di->label);
+
+						start_color(RESET);
+						exit(1);
+					}
+
+					// set the information to our root diskinfo, and then set it as our object pointer on the main stack
+					//s_disk->source = 1;
+					sourcesize = s_disk->size_gb;
+					start_color(GREEN);
+					printf("Found source: %s on %s @ %dGiB [%s - %s] {sn:%s}\n", 
+						s_disk->device, s_disk->is_usb ? "USB" : "ATA", 
+						s_disk->size_gb, s_disk->vendor, s_disk->model, s_disk->serial);
+					start_color(RESET);
+					sourcedisk = s_disk;
+				}
 			}
 			
 		}
 
-		printf("read: %s", line);
+		//printf("read: %s", line);
 	}
 
 	pclose(p_file);

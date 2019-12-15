@@ -8,11 +8,15 @@
 
 typedef struct DiskInfo
 {
-	char device[4];
+	char device[5];
 	char label[12];
 	char vendor[100];
 	char model[100];
 	char serial[100];
+	int size_gb;
+	
+	short unsigned int is_usb;
+
 
 } _diskinfo;
 
