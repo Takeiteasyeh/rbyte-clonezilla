@@ -12,7 +12,7 @@
 #include "rbzilla.h"
 #include "diskinfo.h"
 
-#define DEBUG
+//#define DEBUG
 
 Disklabel *labelarray[10*sizeof(Disklabel)];
 _diskinfo *sourcedisk;
@@ -30,16 +30,13 @@ int main(int argc, char *argv[])
 {
    // source = malloc(4);
    start_color(BLUE);
-    printf("rbzilla mod by Ray Lynk - rlynk@bacon.place\n");
+    printf("rbzilla mod v1.0-beta by Ray Lynk - rlynk@bacon.place\n");
     start_color(RESET);
     printf("Parsing disk(s) information...\n");
 	parse_disk_info();
   //  parse_disk_labels();
     parse_partitions();
 
-    if (labelcount == 0)
-        printf("!! notice: no disk labels detected. 'Windows' is expected source.\n");
-    
     // check if we have target and source, if not exit. In the future, we may loop
     if (strlen(source) < 3)
     {
@@ -57,29 +54,13 @@ int main(int argc, char *argv[])
         exit(1);
     }
 
-#ifdef DEBUG
-    else
-    {
-        printf("found %d partition labels.\n", labelcount);
-    }
-
-    printf("we have the following labels:\n");
-
-    for (int i = 0; i < 10; i++)
-    {
-        if (labelarray[i] == NULL)
-            break;
-
-        printf("label: %s\n", labelarray[i]->label);
-    }
-#endif
  
  // get the labels for the drive for better accuracy before we continue
 
  // final countdown, ask for permission to run the following command
  start_color(YELLOW);
- printf("$$ source: %s [%dGiB] %s\n", source, sourcesize, sourcetype);
- printf("$$ target: %s [%dGiB] %s\n", destination, destsize, desttype);
+ //printf("$$ source: %s [%dGiB] %s\n", source, sourcesize, sourcetype);
+ //printf("$$ target: %s [%dGiB] %s\n", destination, destsize, desttype);
  printf("We are ready to clone %s -> %s\nPlease input 'Y' to continue (or N, i guess..:P):",
     source, destination);
     start_color(RESET);
@@ -147,7 +128,6 @@ void parse_disk_info()
 
 	while ((read = getline(&line, &length, p_file)) != -1)
 	{
-		int root_size;
 		char root[4];
 		int part;
 		_diskinfo *di;
@@ -204,10 +184,10 @@ void parse_disk_info()
 					if (sourcesize > 0)
 					{
 						start_color(YELLOW);
-						printf("** notice: multiple source labels detected. Clone already completed?");
+						printf("** notice: multiple source labels detected. Clone already completed?\n");
 
 						if (di->is_usb)
-							printf("** notice: %s (usb device) is probably original source.", di->label);
+							printf("** notice: %s (usb device) is probably original source.\n", di->device);
 
 						start_color(RESET);
 						exit(1);
@@ -217,11 +197,12 @@ void parse_disk_info()
 					//s_disk->source = 1;
 					sourcesize = s_disk->size_gb;
 					start_color(GREEN);
-					printf("Found source: %s on %s @ %dGiB [%s - %s] {sn:%s}\n", 
+					printf("Found source: %s on %s @ %d GiB [%s - %s] {sn:%s}\n", 
 						s_disk->device, s_disk->is_usb ? "USB" : "ATA", 
 						s_disk->size_gb, s_disk->vendor, s_disk->model, s_disk->serial);
 					start_color(RESET);
 					sourcedisk = s_disk;
+					strcpy(source,s_disk->device);
 				}
 			}
 			
@@ -232,192 +213,7 @@ void parse_disk_info()
 
 	pclose(p_file);
 }
-void parse_disk_labels()
-{
-    DIR *folder;
-    char fullpath[251];
-    char acutalpath[255];
-    struct dirent *each;
 
-    folder = opendir("/dev/disk/by-label");
-
-    if (folder == NULL)
-    {
-        start_color(RED);
-        printf("!! warning: unable to read /dev/disk/by-label\n");
-        printf("!! warning: probably no install source, or, install source not labeled.\n");
-        printf("!! warning: if using source, set label to 'Windows'\n");
-        start_color(RESET);
-        return;
-    }
-
-    int pos = 0;
-
-    while ((each=readdir(folder)))
-    {
-        if (each->d_name[0] == '.')
-            continue;
-
-        strcpy(fullpath, "/dev/disk/by-label/");
-        strcat(fullpath, each->d_name);
-        realpath(fullpath, acutalpath);
-
-        char devname[4];
-        sscanf(acutalpath, "/dev/%3s", devname);
-#ifdef DEBUG
-        printf("%s -> %s [%s]\n", acutalpath, devname, each->d_name);
-#endif
-           // check if source labeled Windows
-        if (strcmp(each->d_name, "Windows") == 0)
-        {
-            //printf("debug: found source start");
-            if (strlen(source) == 3)
-            {
-                start_color(RED);
-                printf("!!\n!! warning: source is already defined { have you already cloned? }\n!!\n");
-                start_color(RESET);
-            }
-
-             else
-             {
-                 strcpy(source, devname);
-
-                 // get the size by cat'n'grep
-                 // cat /proc/partitions | grep 'sda$'
-                FILE *checker;
-                char cmd[50];
-                char *line;
-                size_t length;
-              
-                sprintf(cmd, "cat /proc/partitions | grep '%s$'", devname);
-
-                checker = popen(cmd, "r");
-                size_t read = getline(&line, &length, checker);
-                pclose(checker);
-                // unable to find it in cat /proc/partitions
-                if (read == -1)
-                {
-                    start_color(RED);
-                    printf("XX-> error: unable to find source size in '/proc/partitions' grep\n");
-                    start_color(RESET);
-                    return;
-                }
-
-                int major, minor, blocks;
-                char name[4];
-
-                // try and find the size of the disk (in blocks)
-                if (sscanf(line, "%d %d %d %s", &major, &minor, &blocks, name) == 4)
-                {
-                    int size = blocks / 1048576;
-                                        // load our drive type information
-                    char *dmodel;
-                    char *dvendor;
-                    char formatted[100];
-					char *buffer;
-					char *pnewline;
-
-                    sprintf(formatted, SRC_MODEL, devname);
-                    checker = fopen(formatted, "r");
-					
-					if (checker == NULL)
-					{
-						dmodel = malloc(8);
-						dmodel = "unknown";
-					}
-
-					else
-					{
-						getline(&buffer, &length, checker);
-						pnewline = strchr(buffer, '\n');
-
-						if (pnewline != NULL)
-						{
-							strcpy(pnewline, "");
-						}
-
-						fclose(checker);
-
-						dmodel = malloc(sizeof(buffer)); // buffer already has null term
-						strcpy(dmodel, buffer);
-                    	
-					}
-					
-					strcpy(buffer, "");
-                    sprintf(formatted, SRC_VENDOR, devname);
-                    checker = fopen(formatted, "r");
-
-					if (checker == NULL)
-					{
-						dvendor = malloc(8);
-						dvendor = "unknown";
-					}
-
-					else
-					{
-						getline(&buffer, &length, checker);
-						
-						pnewline = strchr(buffer, '\n');
-
-						if (pnewline != NULL)
-						{
-							strcpy(pnewline, "");
-						}
-
-                    	fclose(checker);
-
-						dvendor = malloc(sizeof(buffer)); // already has null term
-						strcpy(dvendor, buffer);
-					}
-					
-					// check if we need to increase our size
-					if ((sizeof(dvendor) + sizeof(dmodel) + 2) > (sizeof(sourcetype) - 4))
-					{
-						if (realloc(sourcetype, (sizeof(dvendor) + sizeof(dmodel) + 5)) == NULL)
-						{
-							start_color(RED);
-							printf("XX-> error: unable to allocate sourcetype string memory\n");
-							start_color(RESET);
-							exit(1);
-						}
-					}
-
-                    sprintf(sourcetype, "%s -> %s", dvendor, dmodel);
-
-                    start_color(GREEN);
-                    printf("Found source label in %s [%dGiB] %s\n", devname, size, sourcetype);
-                    sourcesize = size;
-
-                    start_color(RESET);
-
-                }
-
-                else
-                {
-                    start_color(RED);
-                    printf("XX-> error: unable to find source size in '/proc/partitions' grep\n");
-                    start_color(RESET);
-                    return;
-                }
-
-                
-                
-                // multiplesource = 1;
-             }
-         }
-
-        Disklabel *label = malloc(sizeof(Disklabel));
-            
-        label = create_label(devname, each->d_name);
-        labelarray[pos] = label;
-        pos++;
-    }
-
-    // this is the total count of labels for show-back purposes mostly.
-    labelcount = pos;
-
-    closedir(folder);
-}
 
 void parse_partitions()
 {
@@ -458,9 +254,7 @@ void parse_partitions()
 #ifdef DEBUG
                 printf("device: %s [size: %dGb]\n", name, gibsize);
 #endif
-                // initial configuration and setup of the Disk item for this
-              //  Disk *dsk;
-              //  dsk = malloc(sizeof(Disk));
+
                 // if you change this comparison you will probably also want to modify
                 // the proceeding else if to check if target is also the source drive or not
                 // which is undefined behaviour
@@ -483,61 +277,15 @@ void parse_partitions()
                 else if ((gibsize == sourcesize) && (sourcesize > 0))
                 {
 
-                    // load our drive type information from various linux space areas
-                    FILE *checker;
-                    char *dmodel;
-                    char *dvendor;
-                    char formatted[100];
-					char *buffer;
-					char *pnewline;
-
-					buffer = malloc(100);
-                    sprintf(formatted, SRC_MODEL, dev);
-                    // assign and check for value
-                    checker = fopen(formatted, "r");
-                    
-                    if (checker == NULL)
-                    {
-						dmodel = malloc(8);
-                        strcpy(dmodel, "unknown");
-                    }
-
-                    else
-                    {
-                        getline(&dmodel, &length, checker);
-                        fclose(checker);
-                    }
-                    
-                    // reset formatted for the vendor file parse
-                    sprintf(formatted, SRC_VENDOR, dev);
-                    checker = fopen(formatted, "r");
-
-                    if (checker == NULL)
-                    {
-                        strcpy(dvendor, "unknown");
-                    }
-
-                    else
-                    {
-                        getline(&buffer, &length, checker);
-						pnewline = strchr(buffer, '\n');
-
-						if (pnewline != NULL)
-						{
-							strcpy(pnewline, "");
-						}
-
-						dvendor = malloc(sizeof(buffer)); // already has null term
-						strcpy(dvendor, buffer);
-                        fclose(checker);
-                    }
-
-                    sprintf(desttype, "%s -> %s", dvendor, dmodel);
+					_diskinfo *p_dinfo;
+					p_dinfo = get_disk_info(name);
 
                         strcpy(destination, dev);
                         destsize = sourcesize;
                         start_color(GREEN);
-                        printf("found target same-sized device: %s [%dGB] %s\n", name, sourcesize, desttype);
+                        printf("Found target: %s on %s @ %d GiB [%s - %s] {sn:%s}\n", 
+						name, p_dinfo->is_usb ? "USB" : "ATA", 
+						sourcesize, p_dinfo->vendor, p_dinfo->model, p_dinfo->serial);
                         start_color(RESET);
                         continue;
                 }
