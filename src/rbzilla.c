@@ -29,10 +29,11 @@ short int labelcount=0;
 int main(int argc, char *argv[])
 {
    // source = malloc(4);
-   start_color(BLUE);
-    printf("rbzilla mod v1.0-beta by Ray Lynk - rlynk@bacon.place\n");
-    start_color(RESET);
-    printf("Parsing disk(s) information...\n");
+   start_color(YELLOW);
+    printf("## rbzilla mod v1.0-beta by Ray Lynk - rlynk@bacon.place ##\n");
+    start_color(BLUE);
+    printf("Doing detecty things....\n");
+	start_color(RESET);
 	parse_disk_info();
   //  parse_disk_labels();
     parse_partitions();

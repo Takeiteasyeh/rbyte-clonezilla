@@ -64,3 +64,43 @@ typedef struct Disklabel
 Disklabel *create_label(char *disk, char *label);
 Disk create_disk(char *dev);
 Partition create_part(Disk *disk, char *part, char *label);
+/*
+char *ascii = "                                                                           
+                 `Ny-                                   `/dy               
+                 :MMMm+`                              -sNMMN               
+                 sMMMMMNy:                         `+dMMMMMM.              
+                 yMNMMdNMMmo.                    :yNMmdMmdMM:              
+                 hMsMMMhhmMMNy:     ````      .omMMmhdMMsmMM:              
+                 hMhdMMNNhymMMMmmmNNNNNNNNNmmmNMMmhmMMMM+MMM:              
+                 yMMhMmyodMMMMMMMMMMMMMMMMMMMMMMMMMdyymMNMMM:              
+                 sMMMMMNMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM-              
+                 +MMNdysoo///:/-:://osyyyyoooooo+////::/:::/.              
+                 :N+.`  `y/` /d/       `+osyyyyyhyyyyydmNNNm               
+     `...`       .+   ` -MMy mMh`-:    +MMMMNhoyh-````../NMy        ``...  
+      ```.---...``.   sy+:s/-//`hNh    sMMm+. +Nmm.     +MMs `...---.```   
+    `.....```...-:.   /dd`:mNNy::o.   .mMy`   /mhM+  `:hMMMN/-...```.....  
+    ````......-//mm+   ``oNMMMMNh`   /mMMdo:-``:dm::sdNMMMMMh/:-.....````  
+   ..----:---:..:NMMy-  .NMMNmmmd.`:hNNNMMMMNmmdmNNMMMMMMMMMd..----:----.  
+                 :smMNho/++/-.-:/sdMNhmddMMMMMMMMMMMMMMMMNd+.              
+                   `:sdNMNNmmmmNMMMMMNhdMMMMMMMMMMMMMMmh+-`                
+                      `-/sdmNMMMMMMMMMMMMMMMMMMMMNmho:.                    
+      -osyyyyyhyyso:.      .-:+oyhdNmhdddMmhyso/:.`   .:+syyhyhyyyso:      
+      /MMMMMNsyyNMMMy              .+yhdy+`           sMMMNyysNMMMMM+      
+    .ydMMMMMNdhyMMMm.  `y+  `so   o+  .:-   oy`  +y.  `mMMMyhmNMMMMMdy-    
+    `omMMMMMMMMMMMMy-..hm.  yN-  oN/  -Ns   :dy  .md.`-yMMMMMMMMMMMMmo`    
+      .+dMMMMMMMMdsshdmMs-.sN:  /N+  .md`  /d:Ns`-sMmdhssdMMMMMMMMdo.      
+        `:sdNMMMm-  `hN+ohmMm+-/Ny  `hm.  :Ns /hoso+Nd`  -NMMMNds:`        
+            ./sy-   sN:  /Ns/omMNy+-yN-  .mh` `ym`  :Ns   .ys/-            
+                    :-  -Ny  .md-/sNMms+:mm`  sN-  `.-:                    
+                  `    `dh` `hm.  :Mo-:sMNds+sM+  `hd   `                  
+                 /d-  `ss/. sN-  .my   sN:.:dMmhs+hM:  -d/                 
+    ````````     `dNoshdNN: +:  `dd`  +M+  :Ns`./NNmhyoNd`     ````````    
+    -hmmdddhhyyyyhdmM+. :Ny     sm.  :No  -Nh   yN- .+Mmdhyyyyhhdddmmh-    
+     `/hNMMMMMMMs. `dh   :N/    ..   `-   -+`  /N:   hd. .sMMMMMMMNh/`     
+        .dMMMMN+    `-    `                     `    .`    +NMMMMd.        
+         mMMMh.                                             .hMMMm         
+        .MMm:                                                 :mMM-        
+        :No`                                                   `oN:        
+         `                                                       `         
+                                                                           
+"; */

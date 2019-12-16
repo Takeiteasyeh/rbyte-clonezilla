@@ -5,6 +5,9 @@
 
 _diskinfo *get_disk_info(const char *device)
 {
+	if (strlen(device) < 3)
+		return NULL;
+		
 	char *buffer = NULL;
 	_diskinfo *p_diskinfo = malloc(sizeof(_diskinfo));
 	strcpy(p_diskinfo->device, device);
