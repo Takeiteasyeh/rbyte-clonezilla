@@ -20,7 +20,8 @@
 #define MAX_DISK_LABEL_SIZE 12 // with null terminator
 #define MAX_PARTITIONS_PER_DISK 128 // rfc max of 128 partitions per any disk
 #define NO_FLASH_SOURCES 1 // do not allow drives under 64gib to act as source media
-#define MAX_FILE_READ_SIZE 
+#define MAX_FILE_READ_SIZE
+#define DEVICE_STRING_SIZE 6 // max size of the device 'sda / nvme0' including null term.
 
 /* definitions for the color profiles, including reset */
 #define RED     1
@@ -34,6 +35,7 @@
 #define SRC_VENDOR  "/sys/class/block/%s/device/vendor"
 
 int main(int argc, char *argv[]);
+void multiple_sources();
 void parse_partitions();
 void parse_disk_labels();
 void parse_disk_info();

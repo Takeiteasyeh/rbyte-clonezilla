@@ -16,6 +16,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include "diskinfo.h"
+#ifndef DEVICE_STRING_SIZE
+#include "rbzilla.h"
+#endif
 
 _diskinfo *get_disk_info(const char *device)
 {
@@ -29,14 +32,14 @@ _diskinfo *get_disk_info(const char *device)
 	FILE *p_file;
 	size_t buffer_size;
 	char *cmd;
-	cmd = malloc(sizeof(UDEV_COMMAND) +5);
+	cmd = malloc(sizeof(UDEV_COMMAND) + DEVICE_STRING_SIZE); // we use more to account for nvme and other devices
 	sprintf(cmd, UDEV_COMMAND, device);
 	p_file = popen(cmd, "r");
 	size_t bs;
 
 	if (!p_file)
 	{
-		printf("unable to run udevadm on %s\n", device);
+		printf("fatal: unable to run udevadm on %s\n", device);
 		exit(1);
 	}
 

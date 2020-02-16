@@ -26,9 +26,13 @@
 Disklabel *labelarray[10*sizeof(Disklabel)];
 _diskinfo *sourcedisk;
 _diskinfo *targetdisk;
+_diskinfo *Disks[10];
 
-char source[4];
-char destination[4];
+
+int diskcount = 0;
+
+char source[DEVICE_STRING_SIZE]; // sda | nvme0 
+char destination[DEVICE_STRING_SIZE];
 char sourcetype[100];
 char desttype[100];
 int sourcesize;
@@ -39,8 +43,8 @@ int main(int argc, char *argv[])
 {
    // source = malloc(4);
    start_color(YELLOW);
-    printf("## rbzilla mod %s by Ray Lynk - rlynk@hosthelp.ca ##\n");
-    start_color(MAGENTA);
+    printf("RBZilla mod %s by Ray Lynk - rlynk@hosthelp.ca ##\n", VERSION);
+  
     printf("Doing detecty things....\n");
 	start_color(RESET);
 	parse_disk_info();
@@ -145,7 +149,7 @@ void parse_disk_info()
 		if (sscanf(line, "%d %d %d %s\n", &major, &minor, &blocks, device) == 4)
 		{
 			// are we a root device?
-			if (sscanf(device, "%3s%1d", root, &part) != 2)
+			if ((sscanf(device, "%3s%1d", root, &part) != 2) || (sscanf(device, "nvme%1d", root) != 1))
 			{
 				strcpy(rootdev, device);
 				s_disk = malloc(sizeof(Disk));
@@ -158,7 +162,7 @@ void parse_disk_info()
 
 				if (di == NULL)
 				{
-					printf("error getting disk info\n");
+					printf("%s: no disk info available.\n", device);
 				}
 
 				else
@@ -197,9 +201,29 @@ void parse_disk_info()
 						printf("** notice: multiple source labels detected. Clone already completed?\n");
 
 						if (di->is_usb)
-							printf("** notice: %s (usb device) is probably original source.\n", di->device);
+						{
+							// we also need to double check if our original source destination was actually the usb device.
+							if (!sourcedisk->is_usb)
+							{
+								// source is set to ata which is probably wrong; correct it.
+								printf("** notice: selecting usb as default source device.");
+								// swap the two
+								targetdisk = sourcedisk;
+								sourcedisk = di;
+							}
 
+							printf("** notice: %s (usb device) is probably original source.\n", di->device);
+							multiple_sources();
+						}
+
+						else if (sourcedisk->is_usb)
+						{
+							printf("** notice: %s (usb device) is probably original source.\n", sourcedisk->device);
+							multiple_sources();
+						}
+						
 						start_color(RESET);
+						multiple_sources();
 						exit(1);
 					}
 
@@ -315,6 +339,10 @@ void parse_partitions()
     }
 }
 
+void multiple_sources()
+{
+
+}
 void start_color(int color)
 {
     switch (color)
