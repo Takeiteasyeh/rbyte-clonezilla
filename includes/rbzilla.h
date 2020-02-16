@@ -1,10 +1,20 @@
 /*
+* ██████╗ ██████╗ ███████╗██╗██╗     ██╗      █████╗     ███╗   ███╗ ██████╗ ██████╗ 
+* ██╔══██╗██╔══██╗╚══███╔╝██║██║     ██║     ██╔══██╗    ████╗ ████║██╔═══██╗██╔══██╗
+* ██████╔╝██████╔╝  ███╔╝ ██║██║     ██║     ███████║    ██╔████╔██║██║   ██║██║  ██║
+* ██╔══██╗██╔══██╗ ███╔╝  ██║██║     ██║     ██╔══██║    ██║╚██╔╝██║██║   ██║██║  ██║
+* ██║  ██║██████╔╝███████╗██║███████╗███████╗██║  ██║    ██║ ╚═╝ ██║╚██████╔╝██████╔╝
+* ╚═╝  ╚═╝╚═════╝ ╚══════╝╚═╝╚══════╝╚══════╝╚═╝  ╚═╝    ╚═╝     ╚═╝ ╚═════╝ ╚═════╝ 
+* file version: 	1.1-allop
+* file modified: 	Feb 2020
+* author:			Ray Lynk (https://www.hosthelp.ca/rbzilla/)
+*
+* description:	Include file for the main application.	
+*/ 
 
-
-*/
 #define YES 1
 #define NO 0
-
+#define VERSION "1.1-allop"
 #define ZILLA_FALLBACK "sudo /usr/sbin/ocs-onthefly -x"
 #define ZILLA_COMMAND "sudo /usr/sbin/ocs-onthefly -g auto -e1 auto -e2 -r -j2 -sfsck -pa poweroff -f %s -t %s" // source and target
 #define MAX_DISK_LABEL_SIZE 12 // with null terminator

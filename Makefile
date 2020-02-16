@@ -1,5 +1,5 @@
-OBJS	= src/rbzilla.o src/commands.o src/diskinfo.o
-SOURCE	= src/rbzilla.c src/commands.c src/diskinfo.c
+OBJS	= src/rbzilla.o src/diskinfo.o
+SOURCE	= src/rbzilla.c src/diskinfo.c
 HEADER	= includes/rbzilla.h includes/commands.h includes/diskinfo.h
 OUT	= rbzilla
 CC	 = gcc
@@ -15,9 +15,6 @@ all: $(OBJS)
 
 src/rbzilla.o: src/rbzilla.c
 	$(CC) $(FLAGS) src/rbzilla.c -o src/rbzilla.o $(CFLAGS)
-
-src/commands.o: src/commands.c
-	$(CC) $(FLAGS) src/commands.c -o src/commands.o $(CFLAGS)
 
 src/diskinfo.o: src/diskinfo.c
 	$(CC) $(FLAGS) src/diskinfo.c -o src/diskinfo.o $(CFLAGS)

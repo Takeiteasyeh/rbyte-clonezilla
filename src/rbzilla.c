@@ -1,7 +1,16 @@
 /*
-
-
-*/
+* ██████╗ ██████╗ ███████╗██╗██╗     ██╗      █████╗     ███╗   ███╗ ██████╗ ██████╗ 
+* ██╔══██╗██╔══██╗╚══███╔╝██║██║     ██║     ██╔══██╗    ████╗ ████║██╔═══██╗██╔══██╗
+* ██████╔╝██████╔╝  ███╔╝ ██║██║     ██║     ███████║    ██╔████╔██║██║   ██║██║  ██║
+* ██╔══██╗██╔══██╗ ███╔╝  ██║██║     ██║     ██╔══██║    ██║╚██╔╝██║██║   ██║██║  ██║
+* ██║  ██║██████╔╝███████╗██║███████╗███████╗██║  ██║    ██║ ╚═╝ ██║╚██████╔╝██████╔╝
+* ╚═╝  ╚═╝╚═════╝ ╚══════╝╚═╝╚══════╝╚══════╝╚═╝  ╚═╝    ╚═╝     ╚═╝ ╚═════╝ ╚═════╝ 
+* file version: 	1.1-allop
+* file modified: 	Feb 2020
+* author:			Ray Lynk (https://www.hosthelp.ca/rbzilla/)
+*
+* description:		
+*/ 
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -30,8 +39,8 @@ int main(int argc, char *argv[])
 {
    // source = malloc(4);
    start_color(YELLOW);
-    printf("## rbzilla mod v1.0-beta by Ray Lynk - rlynk@bacon.place ##\n");
-    start_color(BLUE);
+    printf("## rbzilla mod %s by Ray Lynk - rlynk@hosthelp.ca ##\n");
+    start_color(MAGENTA);
     printf("Doing detecty things....\n");
 	start_color(RESET);
 	parse_disk_info();
@@ -62,7 +71,7 @@ int main(int argc, char *argv[])
  start_color(YELLOW);
  //printf("$$ source: %s [%dGiB] %s\n", source, sourcesize, sourcetype);
  //printf("$$ target: %s [%dGiB] %s\n", destination, destsize, desttype);
- printf("We are ready to clone %s -> %s\nPlease input 'Y' to continue (or N, i guess..:P):",
+ printf("We are ready to clone %s -> %s\nPlease input 'Y' to continue (or N for more options):",
     source, destination);
     start_color(RESET);
 
