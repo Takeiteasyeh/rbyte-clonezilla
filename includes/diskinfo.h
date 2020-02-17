@@ -12,7 +12,7 @@
 * description: basic include handling DiskInfo struct and holding UDEVADM command string.		
 */
 #ifndef DEVICE_STRING_SIZE
-#include "rbzilla.h"
+#define DEVICE_STRING_SIZE 10
 #endif
 
 #define UDEV_COMMAND "udevadm info --query=all --name=/dev/%s"
@@ -26,9 +26,11 @@ typedef struct DiskInfo
 	char vendor[100];
 	char model[100];
 	char serial[100];
+	char bus[10];
 	int size_gb;
 	
 	short unsigned int is_usb;
+	short unsigned int is_optical;
 
 
 } _diskinfo;

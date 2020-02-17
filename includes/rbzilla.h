@@ -21,8 +21,10 @@
 #define MAX_PARTITIONS_PER_DISK 128 // rfc max of 128 partitions per any disk
 #define NO_FLASH_SOURCES 1 // do not allow drives under 64gib to act as source media
 #define MAX_FILE_READ_SIZE
-#define DEVICE_STRING_SIZE 6 // max size of the device 'sda / nvme0' including null term.
 
+#ifndef DEVICE_STRING_SIZE
+#define DEVICE_STRING_SIZE 10 // max size of the device 'sda / nvme0' including null term.
+#endif
 /* definitions for the color profiles, including reset */
 #define RED     1
 #define BLUE    2
@@ -45,7 +47,7 @@ void end_color();
 
 typedef struct Disk
 {
-    char device[4];
+    char device[10];
 	char vendor[100];
 	char model[100];
 	char serial[100];
@@ -69,7 +71,7 @@ typedef struct Partition
 
 typedef struct Disklabel
 {
-    char device[6];
+    char device[10];
     char label[MAX_DISK_LABEL_SIZE];
 } Disklabel;
 

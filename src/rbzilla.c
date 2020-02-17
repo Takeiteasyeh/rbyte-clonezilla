@@ -21,7 +21,7 @@
 #include "rbzilla.h"
 #include "diskinfo.h"
 
-//#define DEBUG
+#define DEBUG
 
 Disklabel *labelarray[10*sizeof(Disklabel)];
 _diskinfo *sourcedisk;
@@ -136,28 +136,36 @@ void parse_disk_info()
 	}
 
 	int major, minor, blocks;
-	char device[5];
-	char rootdev[5];
+	char device[10];
+	char rootdev[10];
 	_diskinfo *s_disk;
 
 	while ((read = getline(&line, &length, p_file)) != -1)
 	{
-		char root[4];
+		char root[5];
 		int part;
 		_diskinfo *di;
 
 		if (sscanf(line, "%d %d %d %s\n", &major, &minor, &blocks, device) == 4)
 		{
 			// are we a root device?
-			if ((sscanf(device, "%3s%1d", root, &part) != 2) || (sscanf(device, "nvme%1d", root) != 1))
+			if ((sscanf(device, "%3s%1d", root, &part) != 2) && (sscanf(device, "%4s%1d", root, &part) != 2))
 			{
+				if (strncmp(root, "sr", 2) == 0)
+				{
+#ifdef DEBUG
+					printf("%s: detected optical drive.\n", device);
+#endif
+				//	continue;
+				}
 				strcpy(rootdev, device);
 				s_disk = malloc(sizeof(Disk));
 
 				strcpy(s_disk->device, device);
 				s_disk->size_gb = (blocks / 1048576);
-
-				//printf("requesting disk info for %s\n", device);
+#ifdef DEBUG
+				printf("requesting disk info for %s\n", device);
+#endif
 				di = get_disk_info(device);
 
 				if (di == NULL)
@@ -167,6 +175,7 @@ void parse_disk_info()
 
 				else
 				{
+					printf("debug: setting values\n");
 					strcpy(s_disk->vendor, di->vendor);
 					strcpy(s_disk->model, di->model);
 					strcpy(s_disk->serial, di->serial);
@@ -232,7 +241,7 @@ void parse_disk_info()
 					sourcesize = s_disk->size_gb;
 					start_color(GREEN);
 					printf("Found source: %s on %s @ %d GiB [%s - %s] {sn:%s}\n", 
-						s_disk->device, s_disk->is_usb ? "USB" : "ATA", 
+						s_disk->device, s_disk->bus, 
 						s_disk->size_gb, s_disk->vendor, s_disk->model, s_disk->serial);
 					start_color(RESET);
 					sourcedisk = s_disk;
