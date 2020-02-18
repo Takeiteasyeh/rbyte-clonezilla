@@ -139,12 +139,13 @@ void parse_disk_info()
 	char device[10];
 	char rootdev[10];
 	_diskinfo *s_disk;
+	_diskinfo *di = calloc(1, sizeof(*di));
 
 	while ((read = getline(&line, &length, p_file)) != -1)
 	{
 		char root[5];
 		int part;
-		_diskinfo *di;
+		
 
 		if (sscanf(line, "%d %d %d %s\n", &major, &minor, &blocks, device) == 4)
 		{
@@ -156,10 +157,10 @@ void parse_disk_info()
 #ifdef DEBUG
 					printf("%s: detected optical drive.\n", device);
 #endif
-				//	continue;
+					continue;
 				}
 				strcpy(rootdev, device);
-				s_disk = malloc(sizeof(Disk));
+				s_disk = malloc(sizeof(*s_disk));
 
 				strcpy(s_disk->device, device);
 				s_disk->size_gb = (blocks / 1048576);
@@ -175,7 +176,7 @@ void parse_disk_info()
 
 				else
 				{
-					printf("debug: setting values\n");
+					//printf("debug: setting values\n");
 					strcpy(s_disk->vendor, di->vendor);
 					strcpy(s_disk->model, di->model);
 					strcpy(s_disk->serial, di->serial);
@@ -286,13 +287,18 @@ void parse_partitions()
             continue;
         }
 
+		
+
         else
         {
             // stop doing this calc over and over again plzkthx
             int gibsize = blocks / 1048576;
-
+			const char optical[3] = "sr";
+			char *check;
+			check = strstr(name, optical);
             // if we are root device and not a partition, create as disk
-            if (sscanf(name, "%3s%d", dev, &part) < 2)
+			// we also skip the scsi optical devices starting as sr%d
+            if ((sscanf(name, "%3s%d", dev, &part) < 2) && (check == NULL))
             {
 #ifdef DEBUG
                 printf("device: %s [size: %dGb]\n", name, gibsize);
