@@ -23,13 +23,15 @@
 
 #define DEBUG
 
-Disklabel *labelarray[10*sizeof(Disklabel)];
+Disklabel *labelarray[100*sizeof(Disklabel)];
 _diskinfo *sourcedisk;
 _diskinfo *targetdisk;
-_diskinfo *Disks[10];
+_diskinfo **disks[100];
+_diskinfo **sources[100];
+//_diskinfo *p_sources[100];
 
-
-int diskcount = 0;
+short int sourcedisk_count = 0;
+short int disk_count = 0;
 
 char source[DEVICE_STRING_SIZE]; // sda | nvme0 
 char destination[DEVICE_STRING_SIZE];
@@ -37,7 +39,6 @@ char sourcetype[100];
 char desttype[100];
 int sourcesize;
 int destsize;
-short int labelcount=0;
 
 int main(int argc, char *argv[])
 {
@@ -47,9 +48,10 @@ int main(int argc, char *argv[])
   
     printf("Doing detecty things....\n");
 	start_color(RESET);
+	// parse our /proc/partitions list
 	parse_disk_info();
   //  parse_disk_labels();
-    parse_partitions();
+  //  parse_partitions();
 
     // check if we have target and source, if not exit. In the future, we may loop
     if (strlen(source) < 3)
@@ -138,7 +140,7 @@ void parse_disk_info()
 	int major, minor, blocks;
 	char device[10];
 	char rootdev[10];
-	_diskinfo *s_disk;
+	//_diskinfo *s_disk;
 	_diskinfo *di = calloc(1, sizeof(*di));
 
 	while ((read = getline(&line, &length, p_file)) != -1)
@@ -152,18 +154,20 @@ void parse_disk_info()
 			// are we a root device?
 			if ((sscanf(device, "%3s%1d", root, &part) != 2) && (sscanf(device, "%4s%1d", root, &part) != 2))
 			{
+				// we exclude srX as they are reserved for "scsi" optical drives
 				if (strncmp(root, "sr", 2) == 0)
 				{
 #ifdef DEBUG
-					printf("%s: detected optical drive.\n", device);
+					printf("%s: skipping optical drive.\n", device);
 #endif
 					continue;
 				}
 				strcpy(rootdev, device);
-				s_disk = malloc(sizeof(*s_disk));
+			//1	s_disk = malloc(sizeof(*s_disk));
+			//1	s_disk->is_partition = NO;
 
-				strcpy(s_disk->device, device);
-				s_disk->size_gb = (blocks / 1048576);
+			//1	strcpy(s_disk->device, device);
+			//1	s_disk->size_gb = (blocks / 1048576);
 #ifdef DEBUG
 				printf("requesting disk info for %s\n", device);
 #endif
@@ -174,6 +178,11 @@ void parse_disk_info()
 					printf("%s: no disk info available.\n", device);
 				}
 
+				di->is_partition = NO;
+				di->size_gb = (blocks / 1048576);
+				disks[disk_count++] = &di;
+				// 
+/*
 				else
 				{
 					//printf("debug: setting values\n");
@@ -182,13 +191,11 @@ void parse_disk_info()
 					strcpy(s_disk->serial, di->serial);
 					s_disk->is_usb = di->is_usb;
 
-					//printf("got d: %s v: %s m: %s u: %s\n", di->device, di->vendor, di->model, di->is_usb ? "yes" : "no");
-					//printf("is usb: %s", di->is_usb ? "yes" : "no");
 				}
-				
+				*/
 			}
 
-			// not the root device
+			// not the root device (we are a partition)
 			else
 			{
 				//printf("not root device: %s\n", device);
@@ -198,12 +205,37 @@ void parse_disk_info()
 				{
 					printf("no luck reading info for %s\n", device);
 				}
+				
+				di->is_partition = YES;
+				di->size_gb = (blocks / 1048576);
+				disks[disk_count++] = &di;
+
+
 
 				// check for Windows source label
-				//printf("checking '%s' for label\n", di->label);
-
 				if (strcmp(di->label, "Windows") == 0)
 				{
+					di->is_source = YES;
+					sources[sourcedisk_count++] = &di;
+#ifdef DEBUG
+					printf("debug: %s: found source label (we now have %d source(s))\n", device, sourcedisk_count);
+#endif
+					// if we only have 1 source so far, set it as the source, if we have 2, unset the source pointer
+					if (sourcedisk_count == 1)
+					{
+						sourcedisk = di;
+						sourcesize = di->size_gb;
+						strncpy(source,di->device, sizeof(source));
+					}
+
+					else if (sourcedisk_count == 2)
+					{
+						sourcedisk = NULL;
+						sourcesize = 0;
+						strcpy(source, "");
+					}
+
+					/** old
 					// check if we already have a source size from another entry
 					if (sourcesize > 0)
 					{
@@ -235,18 +267,17 @@ void parse_disk_info()
 						start_color(RESET);
 						multiple_sources();
 						exit(1);
-					}
+					} OLD */
 
 					// set the information to our root diskinfo, and then set it as our object pointer on the main stack
 					//s_disk->source = 1;
-					sourcesize = s_disk->size_gb;
+					
 					start_color(GREEN);
-					printf("Found source: %s on %s @ %d GiB [%s - %s] {sn:%s}\n", 
-						s_disk->device, s_disk->bus, 
-						s_disk->size_gb, s_disk->vendor, s_disk->model, s_disk->serial);
+					printf("Found source #%d: %s on %s @ %d GiB [%s - %s] {sn:%s}\n", 
+						sourcedisk_count, di->device, di->bus, 
+						di->size_gb, di->vendor, di->model, di->serial);
 					start_color(RESET);
-					sourcedisk = s_disk;
-					strcpy(source,s_disk->device);
+					
 				}
 			}
 			

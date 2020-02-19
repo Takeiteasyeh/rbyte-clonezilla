@@ -61,7 +61,7 @@ _diskinfo *get_disk_info(const char *device)
 	while ((bs = getline(&buffer, &buffer_size, p_file)) != -1)
 	{
 //#ifdef DEBUG
-		printf("line: %s\n", buffer);
+	//	printf("line: %s", buffer);
 //#endif
 		//0x55555555ae90 "P: /devices/pci0000:00/0000:00:1f.2/ata1/host0/target0:0:0/0:0:0:0/block/sda\n"
 		///: ID_BUS=ata
@@ -71,7 +71,11 @@ _diskinfo *get_disk_info(const char *device)
 		sscanf(buffer, "E: ID_MODEL=%s", p_diskinfo->model);
 		sscanf(buffer, "E: ID_SERIAL_SHORT=%s", p_diskinfo->serial);
 		sscanf(buffer, "E: ID_FS_LABEL=%s", p_diskinfo->label);
-		sscanf(buffer, "E: ID_BUS=%s\n", p_diskinfo->bus);
+		
+		if (sscanf(buffer, "E: ID_BUS=%s\n", p_diskinfo->bus) == 1)
+		{
+			printf("got id_bus for %s of %s\n", device, p_diskinfo->bus);
+		}
 
 		if (strcmp(p_diskinfo->bus, "usb") == 0)
 			p_diskinfo->is_usb = 1;

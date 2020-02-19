@@ -44,7 +44,7 @@ void parse_disk_info();
 void start_color(int color);
 void end_color();
 
-
+/*
 typedef struct Disk
 {
     char device[10];
@@ -68,7 +68,7 @@ typedef struct Partition
     unsigned long long int size;
     unsigned long long int free;
 } Partition;
-
+*/
 typedef struct Disklabel
 {
     char device[10];
@@ -76,8 +76,8 @@ typedef struct Disklabel
 } Disklabel;
 
 Disklabel *create_label(char *disk, char *label);
-Disk create_disk(char *dev);
-Partition create_part(Disk *disk, char *part, char *label);
+//Disk create_disk(char *dev);
+//Partition create_part(Disk *disk, char *part, char *label);
 /*
 char *ascii = "                                                                           
                  `Ny-                                   `/dy               

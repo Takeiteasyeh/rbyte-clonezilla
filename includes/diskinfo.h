@@ -31,7 +31,8 @@ typedef struct DiskInfo
 	
 	short unsigned int is_usb;
 	short unsigned int is_optical;
-
+	short unsigned int is_partition;
+	short unsigned int is_source;
 
 } _diskinfo;
 
