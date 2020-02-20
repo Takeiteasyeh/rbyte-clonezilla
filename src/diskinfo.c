@@ -17,6 +17,10 @@
 #include <string.h>
 #include "diskinfo.h"
 #include "rbzilla.h"
+extern short int nvme_count;
+extern short int usb_count;
+extern short int ata_count;
+
 
 _diskinfo *get_disk_info(const char *device)
 {
@@ -74,7 +78,26 @@ _diskinfo *get_disk_info(const char *device)
 		
 		if (sscanf(buffer, "E: ID_BUS=%s\n", p_diskinfo->bus) == 1)
 		{
-			printf("got id_bus for %s of %s\n", device, p_diskinfo->bus);
+			//strncpy(p_diskinfo->bus, "nvme0", 6);
+			if (strcmp(p_diskinfo->bus, "nvme") == 0)
+			{
+				/* we can cause confusion by changing this here
+				if (nvme_count == 0)
+				{
+					strncpy(destination,p_diskinfo->device, sizeof(destination) +1);
+				} */
+
+				p_diskinfo->is_nvme = YES;
+				p_diskinfo->is_target = YES;
+				nvme_count++;
+			}
+
+			else if (strcmp(p_diskinfo->bus, "ata") == 0)
+			{
+				p_diskinfo->is_ata = YES;
+				p_diskinfo->is_target = YES;
+				ata_count++;
+			}
 		}
 
 		if (strcmp(p_diskinfo->bus, "usb") == 0)

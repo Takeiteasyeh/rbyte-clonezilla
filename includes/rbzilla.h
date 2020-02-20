@@ -14,7 +14,7 @@
 
 #define YES 1
 #define NO 0
-#define VERSION "1.1-allop"
+#define VERSION "2.0"
 #define ZILLA_FALLBACK "sudo /usr/sbin/ocs-onthefly -x"
 #define ZILLA_COMMAND "sudo /usr/sbin/ocs-onthefly -g auto -e1 auto -e2 -r -j2 -sfsck -pa poweroff -f %s -t %s" // source and target
 #define MAX_DISK_LABEL_SIZE 12 // with null terminator
@@ -25,13 +25,13 @@
 #ifndef DEVICE_STRING_SIZE
 #define DEVICE_STRING_SIZE 10 // max size of the device 'sda / nvme0' including null term.
 #endif
-/* definitions for the color profiles, including reset */
+/* definitions for the color profiles, including RESET -- use it! */
 #define RED     1
 #define BLUE    2
 #define GREEN   3
 #define YELLOW  4
 #define MAGENTA 5
-#define RESET   6
+#define RESET   6 // DO NOT FORGET, ESTI! YOU MUST ALWAYS CALL THIS AT SOME POING AFTER!!
 
 #define SRC_MODEL   "/sys/class/block/%s/device/model"
 #define SRC_VENDOR  "/sys/class/block/%s/device/vendor"
@@ -43,6 +43,7 @@ void parse_disk_labels();
 void parse_disk_info();
 void start_color(int color);
 void end_color();
+void reset_counts();
 
 /*
 typedef struct Disk

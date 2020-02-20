@@ -26,12 +26,15 @@
 Disklabel *labelarray[100*sizeof(Disklabel)];
 _diskinfo *sourcedisk;
 _diskinfo *targetdisk;
-_diskinfo **disks[100];
-_diskinfo **sources[100];
+_diskinfo disks[100];
+_diskinfo sources[100];
 //_diskinfo *p_sources[100];
 
-short int sourcedisk_count = 0;
-short int disk_count = 0;
+short int sourcedisk_count = 0; // how many disks have 'Windows Labels'
+short int disk_count = 0; // how many disks/partitions in total
+short int nvme_count = 0; // how many come back on nvme bus, good target indictator,
+short int usb_count = 0; // how many come back on usb, good source indicator.
+short int ata_count = 0;
 
 char source[DEVICE_STRING_SIZE]; // sda | nvme0 
 char destination[DEVICE_STRING_SIZE];
@@ -42,16 +45,76 @@ int destsize;
 
 int main(int argc, char *argv[])
 {
-   // source = malloc(4);
-   start_color(YELLOW);
+   	start_color(YELLOW); // sets console color
     printf("RBZilla mod %s by Ray Lynk - rlynk@hosthelp.ca ##\n", VERSION);
-  
     printf("Doing detecty things....\n");
-	start_color(RESET);
-	// parse our /proc/partitions list
+	start_color(RESET); // reset the color to defaults. DO NOT FORGET, ESTI!
+
+	// parse our /proc/partitions list and feed the results to our global, which
+	// we should probably rewrite in a future release to just pass along a pointer
+	// to which the data will be fed to, negating the global.
 	parse_disk_info();
-  //  parse_disk_labels();
-  //  parse_partitions();
+
+	printf("listing devices:");
+	int realdiskcount = 0;
+	int lastwas = 0; // valid is 0 for none, 1 for real, 2 for partition
+	_diskinfo *p;
+
+	
+	for (int i=0; i < disk_count; i++)
+	{
+		p = &disks[i];
+
+		if (disks[i].is_partition == NO)
+		{
+			// we are going to use the first nvme device, or ata device as our primary, in that order.
+			realdiskcount++;
+			lastwas = 1;
+			printf("\n\n#%d) %s on %s @ %d GiB [%s - %s] {serial: %s}\n", realdiskcount, p->device, p->bus,
+				p->size_gb, p->vendor, p->model, p->serial);
+
+			// are we the default target?
+			if ((p->is_nvme == YES) && (p->is_target))
+			{
+				// probably 
+				strncpy(destination, p->device, sizeof(destination));
+				targetdisk = p; 				
+			}
+
+			// default ata then, but only if no nvme.
+			else if ((p->is_target) && (p->is_ata) && (targetdisk == NULL))
+			{
+				strncpy(destination, p->device, sizeof(destination));
+				targetdisk = p; 
+			}
+
+			if (strcmp(p->device, destination) == 0)
+			{
+				// yes
+			//	*targetdisk = *p;
+				start_color(YELLOW);
+				printf("|- I am current target drive.\n");
+				start_color(RESET);
+			}
+
+			else if (strcmp(p->device, source))
+			{
+
+			}
+		}
+
+		else if (disks[i].is_partition == YES)
+		{
+			// check if last was a physical device and print the header
+			if (lastwas == 1)
+			{
+				lastwas = 2;
+				printf("|- partitions: ");
+			}
+
+			printf("%s%s ", disks[i].device, disks[i].is_source ? "(source)" : "");
+		}
+	}
 
     // check if we have target and source, if not exit. In the future, we may loop
     if (strlen(source) < 3)
@@ -180,7 +243,7 @@ void parse_disk_info()
 
 				di->is_partition = NO;
 				di->size_gb = (blocks / 1048576);
-				disks[disk_count++] = &di;
+				disks[disk_count++] = *di;
 				// 
 /*
 				else
@@ -205,23 +268,22 @@ void parse_disk_info()
 				{
 					printf("no luck reading info for %s\n", device);
 				}
-				
+
 				di->is_partition = YES;
 				di->size_gb = (blocks / 1048576);
-				disks[disk_count++] = &di;
-
-
+				strncpy(di->root, rootdev, sizeof(di->root));
+				disks[disk_count++] = *di;
 
 				// check for Windows source label
 				if (strcmp(di->label, "Windows") == 0)
 				{
 					di->is_source = YES;
-					sources[sourcedisk_count++] = &di;
+					sources[sourcedisk_count++] = *di;
 #ifdef DEBUG
 					printf("debug: %s: found source label (we now have %d source(s))\n", device, sourcedisk_count);
 #endif
 					// if we only have 1 source so far, set it as the source, if we have 2, unset the source pointer
-					if (sourcedisk_count == 1)
+					/* if (sourcedisk_count == 1)
 					{
 						sourcedisk = di;
 						sourcesize = di->size_gb;
@@ -233,7 +295,7 @@ void parse_disk_info()
 						sourcedisk = NULL;
 						sourcesize = 0;
 						strcpy(source, "");
-					}
+					} */
 
 					/** old
 					// check if we already have a source size from another entry
@@ -289,6 +351,14 @@ void parse_disk_info()
 	pclose(p_file);
 }
 
+void reset_counts()
+{
+	sourcedisk_count = 0; // how many disks have 'Windows Labels'
+	disk_count = 0; // how many disks/partitions in total
+	nvme_count = 0; // how many come back on nvme bus, good target indictator,
+	usb_count = 0; // how many come back on usb, good source indicator.
+	ata_count = 0; // standard ata(assumed) devices
+}
 
 void parse_partitions()
 {
