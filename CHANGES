@@ -20,6 +20,8 @@
 # ! Known Issues
 # @ Fixed Bugs
 # ? Planned / Potential
+# X Resolved (not version dependent - could have been at any time post-release, only mark
+#									  CURRENT bugs in changelog as bugs, resolve others.)
 ###################
 
 #######
@@ -29,19 +31,24 @@
 + We now have a changelog!
 + Nvme drives are now default copy targets.
 + Primary ATA device is now default target (when nvme is missing).
++ We now look for a ntfs partition on a usb device to determine default source disk.
+
 * Version updated to 2.0 due to the major rewrite of base code.
 * USB device now defaults to source, even if label is missing.
 * Rewrote the diskinfo parsing and moved logic outside this call.
 * Massive code cleanup
 * We now ignore optical drives.
 * Improved the detail output during the scan phase to better help technicians.
+
+! We only support finding ntfs based default sources. This MAY be fixed but isn't high on the list.
+
+? Code can use alot of cleanup now that I know more what I'm doing...
 ? We now allow cloning to different size disks!!
 ? Added more options when more than one source is detected.
 ? Added an extra option on confirmation to choose a different action.
 ? Added an extra options when more than one target is available.
 ? Re-introduced the ignoring of usb devices smaller than 58GiB (ie: rbzilla boot device)
 ? We can now reverse clone from the internal drive to an external for load creations.
-
 
 
 #######

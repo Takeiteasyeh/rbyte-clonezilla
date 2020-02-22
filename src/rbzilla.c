@@ -58,20 +58,25 @@ int main(int argc, char *argv[])
 	printf("listing devices:");
 	int realdiskcount = 0;
 	int lastwas = 0; // valid is 0 for none, 1 for real, 2 for partition
-	_diskinfo *p;
+	_diskinfo *p; // temp pointer to the current item 
+	_diskinfo *root; // pointer to the physical disk, used to set source flags based on partition types.
 
-	
+	// cleanup -- swap all disks[i] to p
 	for (int i=0; i < disk_count; i++)
 	{
 		p = &disks[i];
+		root = p;
 
 		if (disks[i].is_partition == NO)
 		{
 			// we are going to use the first nvme device, or ata device as our primary, in that order.
 			realdiskcount++;
 			lastwas = 1;
-			printf("\n\n#%d) %s on %s @ %d GiB [%s - %s] {serial: %s}\n", realdiskcount, p->device, p->bus,
+
+			start_color(BLUE);
+			printf("\n#%d) %s on %s @ %d GiB [%s - %s] {serial: %s}\n", realdiskcount, p->device, p->bus,
 				p->size_gb, p->vendor, p->model, p->serial);
+			start_color(RESET);
 
 			// are we the default target?
 			if ((p->is_nvme == YES) && (p->is_target))
@@ -103,7 +108,7 @@ int main(int argc, char *argv[])
 			}
 		}
 
-		else if (disks[i].is_partition == YES)
+		else if (p->is_partition == YES)
 		{
 			// check if last was a physical device and print the header
 			if (lastwas == 1)
@@ -112,7 +117,24 @@ int main(int argc, char *argv[])
 				printf("|- partitions: ");
 			}
 
+			// set the parent
+			p->myroot = root;
+
+			// if we are a usb device AND a ntfs partition, we are probably the source.
+			if (p->is_usb && p->is_ntfs)
+			{
+				p->is_source = YES;
+				root->is_source = YES;
+				strncpy(source, root->device, sizeof(source)); // copy it to our source name; this should be deprecated
+				sourcedisk = root;
+			}
+
+			if (p->is_source)
+				start_color(GREEN);
+
 			printf("%s%s ", disks[i].device, disks[i].is_source ? "(source)" : "");
+
+			start_color(RESET);
 		}
 	}
 
@@ -158,7 +180,7 @@ int main(int argc, char *argv[])
 		{
 			case 'y':
 			case 'Y': printf("Execute: %s\n", cmd);
-				system(cmd);
+			//	system(cmd); // dont run the actual command during debug pls
 				exit(1); // no reach
 			
 			case 'n':
@@ -226,11 +248,7 @@ void parse_disk_info()
 					continue;
 				}
 				strcpy(rootdev, device);
-			//1	s_disk = malloc(sizeof(*s_disk));
-			//1	s_disk->is_partition = NO;
 
-			//1	strcpy(s_disk->device, device);
-			//1	s_disk->size_gb = (blocks / 1048576);
 #ifdef DEBUG
 				printf("requesting disk info for %s\n", device);
 #endif
@@ -244,18 +262,7 @@ void parse_disk_info()
 				di->is_partition = NO;
 				di->size_gb = (blocks / 1048576);
 				disks[disk_count++] = *di;
-				// 
-/*
-				else
-				{
-					//printf("debug: setting values\n");
-					strcpy(s_disk->vendor, di->vendor);
-					strcpy(s_disk->model, di->model);
-					strcpy(s_disk->serial, di->serial);
-					s_disk->is_usb = di->is_usb;
 
-				}
-				*/
 			}
 
 			// not the root device (we are a partition)

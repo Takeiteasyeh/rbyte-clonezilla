@@ -21,7 +21,9 @@
 
 typedef struct DiskInfo
 {
+	//enum filetype { exFat, fat16, fat32, ntfs, ext2, ext3, ext4, ufs, udf };
 	char device[DEVICE_STRING_SIZE]; // /dev/sdx
+	struct DiskInfo *myroot;
 	char root[5];
 	char label[12];
 	char vendor[100];
@@ -29,9 +31,11 @@ typedef struct DiskInfo
 	char serial[100];
 	char bus[10];
 	int size_gb;
+	int partitions; // a count of how many partitions this (root) device has
 	
 	short unsigned int is_usb;
 	short unsigned int is_nvme;
+	short unsigned int is_ntfs;
 	short unsigned int is_ata;
 	short unsigned int is_optical;
 	short unsigned int is_partition;

@@ -65,7 +65,7 @@ _diskinfo *get_disk_info(const char *device)
 	while ((bs = getline(&buffer, &buffer_size, p_file)) != -1)
 	{
 //#ifdef DEBUG
-	//	printf("line: %s", buffer);
+		//printf("line: %s", buffer);
 //#endif
 		//0x55555555ae90 "P: /devices/pci0000:00/0000:00:1f.2/ata1/host0/target0:0:0/0:0:0:0/block/sda\n"
 		///: ID_BUS=ata
@@ -74,6 +74,17 @@ _diskinfo *get_disk_info(const char *device)
 		sscanf(buffer, "E: ID_VENDOR=%s", p_diskinfo->vendor);
 		sscanf(buffer, "E: ID_MODEL=%s", p_diskinfo->model);
 		sscanf(buffer, "E: ID_SERIAL_SHORT=%s", p_diskinfo->serial);
+
+		char ftype[10];
+
+		if (sscanf(buffer, "E: ID_FS_TYPE=%s\n", ftype) == 1)
+		{
+			if (strcmp(ftype, "ntfs") == 0)
+			{
+				p_diskinfo->is_ntfs = YES;
+			}
+		}
+
 		sscanf(buffer, "E: ID_FS_LABEL=%s", p_diskinfo->label);
 		
 		if (sscanf(buffer, "E: ID_BUS=%s\n", p_diskinfo->bus) == 1)
@@ -81,12 +92,6 @@ _diskinfo *get_disk_info(const char *device)
 			//strncpy(p_diskinfo->bus, "nvme0", 6);
 			if (strcmp(p_diskinfo->bus, "nvme") == 0)
 			{
-				/* we can cause confusion by changing this here
-				if (nvme_count == 0)
-				{
-					strncpy(destination,p_diskinfo->device, sizeof(destination) +1);
-				} */
-
 				p_diskinfo->is_nvme = YES;
 				p_diskinfo->is_target = YES;
 				nvme_count++;
@@ -101,7 +106,11 @@ _diskinfo *get_disk_info(const char *device)
 		}
 
 		if (strcmp(p_diskinfo->bus, "usb") == 0)
+		{
 			p_diskinfo->is_usb = 1;
+
+			// we dont do source stuff here. do it later.
+		}
 
 		else
 			p_diskinfo->is_usb = 0;

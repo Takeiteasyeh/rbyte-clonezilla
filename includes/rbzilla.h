@@ -11,12 +11,18 @@
 *
 * description:	Include file for the main application.	
 */ 
+#define H_RBZILLA
 
 #define YES 1
 #define NO 0
 #define VERSION "2.0"
+
 #define ZILLA_FALLBACK "sudo /usr/sbin/ocs-onthefly -x"
+#define ZILLA_ORIGIN "sudo clonezilla"
 #define ZILLA_COMMAND "sudo /usr/sbin/ocs-onthefly -g auto -e1 auto -e2 -r -j2 -sfsck -pa poweroff -f %s -t %s" // source and target
+#define ZILLA_SMALL_TO_LARGE "sudo /usr/sbin/ocs-onthefly -g auto -e1 auto -e2 -r -j2 -sfsck -pa poweroff -f %s -t %s"
+#define ZILLA_LARGE_TO_SMALL "sudo /usr/sbin/ocs-onthefly -g auto -e1 auto -e2 -r -j2 -sfsck -pa poweroff -f %s -t %s"
+
 #define MAX_DISK_LABEL_SIZE 12 // with null terminator
 #define MAX_PARTITIONS_PER_DISK 128 // rfc max of 128 partitions per any disk
 #define NO_FLASH_SOURCES 1 // do not allow drives under 64gib to act as source media
