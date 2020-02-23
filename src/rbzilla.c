@@ -25,7 +25,6 @@
 
 //#define DEBUG
 
-Disklabel *labelarray[100*sizeof(Disklabel)];
 _diskinfo *sourcedisk;
 _diskinfo *targetdisk;
 _diskinfo disks[100];
@@ -281,17 +280,6 @@ int main(int argc, char *argv[])
 	}
 }
 
-Disklabel *create_label(char *dev, char *label)
-{
-    Disklabel *dlabel = malloc(sizeof(Disklabel));
-
-    strncpy(dlabel->device, dev, sizeof(dlabel->device));
-    strncpy(dlabel->label, label, sizeof(dlabel->label));
-
-    return dlabel;
-
-}
-
 void show_menu()
 {
 	start_color(BLUE);
@@ -365,13 +353,15 @@ void show_menu()
 
 			case '3':
 					// to come;
+					manually_set_disks();
 					show_menu(); // refresh menu, maybe clear screen first next time
 					break;
 
 			case '4':
 					// to come, make function for this
-
-					break;
+					show_disks();
+					show_menu();
+					exit(1);
 
 			case '5':
 					system(ZILLA_ORIGIN);
@@ -385,20 +375,78 @@ void show_menu()
 				start_color(RED);
 				printf("Performing shutdown! Please come again!\n");
 				start_color(RESET);
-				system("shutdown -h now");
+				//system("shutdown -h now");
 				exit(1);
+			case '\n':
+				break;
 
 			default:
 				start_color(RED);
 				printf("invalid option; try again: ");
 				start_color(RESET);
-				continue;
+				break;
 		}
 
 
 	}
 }
 
+void manually_set_disks()
+{
+	system("clear");
+	show_disks();
+
+	start_color(GREEN);
+	printf("Please choose disk # for source: ");
+}
+void show_disks()
+{
+	_diskinfo *p;
+	int count;
+
+	system("clear");
+	start_color(YELLOW);
+	printf("------- Listing Disks -------\n");
+	start_color(RESET);
+
+		// cleanup -- swap all disks[i] to p
+	for (int i=0; i < disk_count; i++)
+	{
+		p = &disks[i];
+
+		if (disks[i].is_partition == NO)
+		{
+			// we are going to use the first nvme device, or ata device as our primary, in that order.
+			count++;
+
+			start_color(MAGENTA);
+			printf("\n%d) %s on %s @ %d GiB [%s - %s] {serial: %s}\n", count, p->device, p->bus,
+				p->size_gb, p->vendor, p->model, p->serial);
+
+			if (strcmp(p->device, sourcedisk->device) == 0)
+			{
+				start_color(YELLOW);
+				printf("   I am currently source drive.");
+
+			}
+
+			else if (strcmp(p->device, targetdisk->device) == 0)
+			{
+				start_color(YELLOW);
+				printf("   I am currently target drive.");
+
+			}
+
+			start_color(RESET);
+
+			
+		}
+	}
+
+	printf("\n");
+
+		
+}
 void copy_disks(int reverse)
 {
 	char cmd[200];

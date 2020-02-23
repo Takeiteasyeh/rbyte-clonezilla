@@ -49,7 +49,9 @@ void parse_disk_info();
 void start_color(int color);
 void end_color();
 void reset_counts();
+void manually_set_disks();
 void show_menu();
+void show_disks();
 void copy_disks(int reverse);
 
 /*
@@ -62,13 +64,7 @@ typedef struct Partition
     unsigned long long int free;
 } Partition;
 */
-typedef struct Disklabel
-{
-    char device[10];
-    char label[MAX_DISK_LABEL_SIZE];
-} Disklabel;
 
-Disklabel *create_label(char *disk, char *label);
 /*
 char *ascii = "                                                                           
                  `Ny-                                   `/dy               
