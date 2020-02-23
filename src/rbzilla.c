@@ -28,6 +28,7 @@ _diskinfo *sourcedisk;
 _diskinfo *targetdisk;
 _diskinfo disks[100];
 _diskinfo sources[100];
+
 //_diskinfo *p_sources[100];
 
 short int sourcedisk_count = 0; // how many disks have 'Windows Labels'
@@ -257,7 +258,34 @@ Disklabel *create_label(char *dev, char *label)
 
 void show_menu()
 {
-	printf("\nmenu\n");
+	start_color(BLUE);
+	printf("\n*************** MENU ***************\n");
+	printf("* 1) Clone source to target.\n");
+	printf("* 2) Clone ATA to USB disk (aka reverse).\n");
+	printf("* 3) Manually choose source/target disks.\n");
+	printf("* 4) List all available disks.\n");
+	printf("* 5) Start Clonezilla GUI.\n");
+	printf("* 6) Quit to console.\n");
+	printf("* 7) Shutdown.");
+	printf("**************** END ****************\n");
+
+	start_color(GREEN);
+	printf("Please choose a number: ");
+	start_color(RESET);
+
+	printf("\n");
+	while (1)
+	{ 
+		char input = getchar();
+
+		switch (input)
+		{
+			case 1:
+			
+		}
+
+
+	}
 }
 
 void parse_disk_info()
