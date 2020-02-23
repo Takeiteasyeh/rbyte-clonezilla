@@ -21,7 +21,7 @@
 #include "rbzilla.h"
 #include "diskinfo.h"
 
-#define DEBUG
+//#define DEBUG
 
 Disklabel *labelarray[100*sizeof(Disklabel)];
 _diskinfo *sourcedisk;
@@ -35,6 +35,7 @@ short int disk_count = 0; // how many disks/partitions in total
 short int nvme_count = 0; // how many come back on nvme bus, good target indictator,
 short int usb_count = 0; // how many come back on usb, good source indicator.
 short int ata_count = 0;
+int source_target_size_difference = 0;
 
 char source[DEVICE_STRING_SIZE]; // sda | nvme0 
 char destination[DEVICE_STRING_SIZE];
@@ -47,7 +48,7 @@ int main(int argc, char *argv[])
 {
    	start_color(YELLOW); // sets console color
     printf("RBZilla mod %s by Ray Lynk - rlynk@hosthelp.ca ##\n", VERSION);
-    printf("Doing detecty things....\n");
+    printf("Doing detecty things....\n\n");
 	start_color(RESET); // reset the color to defaults. DO NOT FORGET, ESTI!
 
 	// parse our /proc/partitions list and feed the results to our global, which
@@ -55,7 +56,7 @@ int main(int argc, char *argv[])
 	// to which the data will be fed to, negating the global.
 	parse_disk_info();
 
-	printf("listing devices:");
+	printf("----- Listing Disks-----");
 	int realdiskcount = 0;
 	int lastwas = 0; // valid is 0 for none, 1 for real, 2 for partition
 	_diskinfo *p; // temp pointer to the current item 
@@ -65,16 +66,16 @@ int main(int argc, char *argv[])
 	for (int i=0; i < disk_count; i++)
 	{
 		p = &disks[i];
-		root = p;
 
 		if (disks[i].is_partition == NO)
 		{
+			root = p;
 			// we are going to use the first nvme device, or ata device as our primary, in that order.
 			realdiskcount++;
 			lastwas = 1;
 
-			start_color(BLUE);
-			printf("\n#%d) %s on %s @ %d GiB [%s - %s] {serial: %s}\n", realdiskcount, p->device, p->bus,
+			start_color(MAGENTA);
+			printf("\n\n%d) %s on %s @ %d GiB [%s - %s] {serial: %s}\n", realdiskcount, p->device, p->bus,
 				p->size_gb, p->vendor, p->model, p->serial);
 			start_color(RESET);
 
@@ -98,7 +99,7 @@ int main(int argc, char *argv[])
 				// yes
 			//	*targetdisk = *p;
 				start_color(YELLOW);
-				printf("|- I am current target drive.\n");
+				printf("   I am current target drive.\n");
 				start_color(RESET);
 			}
 
@@ -114,7 +115,7 @@ int main(int argc, char *argv[])
 			if (lastwas == 1)
 			{
 				lastwas = 2;
-				printf("|- partitions: ");
+				printf("   partitions: ");
 			}
 
 			// set the parent
@@ -138,32 +139,80 @@ int main(int argc, char *argv[])
 		}
 	}
 
+	printf("\n\n");
+
+	// check if we have neither first, in an attempt to be as specific as possible
+	if (sourcedisk == NULL && targetdisk == NULL)
+	{
+		start_color(RED);
+		printf("No SOURCE and no TARGET disk were automatically detected -- Please choose an option:\n");
+		start_color(RESET);
+		show_menu();
+		exit(1); // there is nothing for you after the menu
+	}
+
     // check if we have target and source, if not exit. In the future, we may loop
-    if (strlen(source) < 3)
-    {
-        start_color(RED);
-        printf("XX-> error: no source disk was detected [labelled 'Windows'].\n");
-        start_color(RESET);
-        exit(1);
-    }
+	if (sourcedisk == NULL)
+	{
+		start_color(RED);
+		printf("No SOURCE disk was automatically detected -- Please choose an option:\n");
+		start_color(RESET);
+		show_menu();
+		exit(1); // there is nothing for you after the menu
+	}
+    // check if we have target and source, if not exit. In the future, we may loop
+	if (targetdisk == NULL)
+	{
+		start_color(RED);
+		printf("No TARGET disk was automatically detected -- Please choose an option:\n");
+		start_color(RESET);
+		show_menu();
+		exit(1); // there is nothing for you after the menu
+	}
 
-    if (strlen(destination) < 3)
-    {
-        start_color(RED);
-        printf("XX-> error: no destination disk was detected [of %dGiB].\n", sourcesize);
-        start_color(RESET);
-        exit(1);
-    }
+	// ready to move forward, give the user our last option
+	start_color(BLUE);
+	printf("Please review the following and choose an option to continue:\n");
+	start_color(GREEN);
+	printf(">> Source: %s on %s @ %d GiB [%s - %s] {serial: %s}\n", sourcedisk->device, sourcedisk->bus,
+				sourcedisk->size_gb, sourcedisk->vendor, sourcedisk->model, sourcedisk->serial);
+	printf(">> Target: %s on %s @ %d GiB [%s - %s] {serial: %s}\n", targetdisk->device, targetdisk->bus,
+				targetdisk->size_gb, targetdisk->vendor, targetdisk->model, targetdisk->serial);
+	
+	// check to see if we need special flags due to differences in disk sizes
+	if (targetdisk->size_gb > sourcedisk->size_gb)
+		source_target_size_difference = -1; // 0 
+	
+	else if (targetdisk->size_gb == sourcedisk->size_gb)
+		source_target_size_difference = 0;
 
- 
- // get the labels for the drive for better accuracy before we continue
+	else if (targetdisk->size_gb < sourcedisk->size_gb)
+		source_target_size_difference = 1;
+
+	switch (source_target_size_difference)
+	{
+		case -1:
+			start_color(YELLOW);
+			printf(">> Source is smaller than Target; Adjusting automatically.\n");
+			start_color(RESET);
+			break;
+
+		case 1:
+			start_color(YELLOW);
+			printf(">> !! WARNING: Source disk larger than destination, are you sure it will fit?\n");
+			start_color(RESET);
+			break;
+
+		case 0:
+		default:
+			break;
+	}
 
  // final countdown, ask for permission to run the following command
  start_color(YELLOW);
  //printf("$$ source: %s [%dGiB] %s\n", source, sourcesize, sourcetype);
  //printf("$$ target: %s [%dGiB] %s\n", destination, destsize, desttype);
- printf("We are ready to clone %s -> %s\nPlease input 'Y' to continue (or N for more options):",
-    source, destination);
+ printf("\n\nPlease input 'Y' to continue, 'R' to reverse source and target, or M for options menu: ");
     start_color(RESET);
 
 	//char input = getchar();
@@ -205,6 +254,12 @@ Disklabel *create_label(char *dev, char *label)
     return dlabel;
 
 }
+
+void show_menu()
+{
+	printf("\nmenu\n");
+}
+
 void parse_disk_info()
 {
 	// start by getting a list of partitions to look through
@@ -280,74 +335,6 @@ void parse_disk_info()
 				di->size_gb = (blocks / 1048576);
 				strncpy(di->root, rootdev, sizeof(di->root));
 				disks[disk_count++] = *di;
-
-				// check for Windows source label
-				if (strcmp(di->label, "Windows") == 0)
-				{
-					di->is_source = YES;
-					sources[sourcedisk_count++] = *di;
-#ifdef DEBUG
-					printf("debug: %s: found source label (we now have %d source(s))\n", device, sourcedisk_count);
-#endif
-					// if we only have 1 source so far, set it as the source, if we have 2, unset the source pointer
-					/* if (sourcedisk_count == 1)
-					{
-						sourcedisk = di;
-						sourcesize = di->size_gb;
-						strncpy(source,di->device, sizeof(source));
-					}
-
-					else if (sourcedisk_count == 2)
-					{
-						sourcedisk = NULL;
-						sourcesize = 0;
-						strcpy(source, "");
-					} */
-
-					/** old
-					// check if we already have a source size from another entry
-					if (sourcesize > 0)
-					{
-						start_color(YELLOW);
-						printf("** notice: multiple source labels detected. Clone already completed?\n");
-
-						if (di->is_usb)
-						{
-							// we also need to double check if our original source destination was actually the usb device.
-							if (!sourcedisk->is_usb)
-							{
-								// source is set to ata which is probably wrong; correct it.
-								printf("** notice: selecting usb as default source device.");
-								// swap the two
-								targetdisk = sourcedisk;
-								sourcedisk = di;
-							}
-
-							printf("** notice: %s (usb device) is probably original source.\n", di->device);
-							multiple_sources();
-						}
-
-						else if (sourcedisk->is_usb)
-						{
-							printf("** notice: %s (usb device) is probably original source.\n", sourcedisk->device);
-							multiple_sources();
-						}
-						
-						start_color(RESET);
-						multiple_sources();
-						exit(1);
-					} OLD */
-
-					// set the information to our root diskinfo, and then set it as our object pointer on the main stack
-					//s_disk->source = 1;
-					
-					start_color(GREEN);
-					printf("Found source #%d: %s on %s @ %d GiB [%s - %s] {sn:%s}\n", 
-						sourcedisk_count, di->device, di->bus, 
-						di->size_gb, di->vendor, di->model, di->serial);
-					start_color(RESET);
-					
-				}
 			}
 			
 		}

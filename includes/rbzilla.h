@@ -50,23 +50,9 @@ void parse_disk_info();
 void start_color(int color);
 void end_color();
 void reset_counts();
+void show_menu();
 
 /*
-typedef struct Disk
-{
-    char device[10];
-	char vendor[100];
-	char model[100];
-	char serial[100];
-
-    //char label[MAX_DISK_LABEL_SIZE]; // 11 and null terminator
-    unsigned long long int size_gb;
-    unsigned short int partcount;
-    unsigned short int source;
-    unsigned short int target;
-
-} Disk;
-
 typedef struct Partition
 {
     struct Partition *next, *prev;
@@ -83,8 +69,6 @@ typedef struct Disklabel
 } Disklabel;
 
 Disklabel *create_label(char *disk, char *label);
-//Disk create_disk(char *dev);
-//Partition create_part(Disk *disk, char *part, char *label);
 /*
 char *ascii = "                                                                           
                  `Ny-                                   `/dy               
@@ -119,7 +103,7 @@ char *ascii = "
     -hmmdddhhyyyyhdmM+. :Ny     sm.  :No  -Nh   yN- .+Mmdhyyyyhhdddmmh-    
      `/hNMMMMMMMs. `dh   :N/    ..   `-   -+`  /N:   hd. .sMMMMMMMNh/`     
         .dMMMMN+    `-    `                     `    .`    +NMMMMd.        
-         mMMMh.                                             .hMMMm         
+         mMMMh.     Have you eaten your shreddies today?   .hMMMm         
         .MMm:                                                 :mMM-        
         :No`                                                   `oN:        
          `                                                       `         
