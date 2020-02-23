@@ -11,6 +11,8 @@
 *
 * description: basic include handling DiskInfo struct and holding UDEVADM command string.		
 */
+#define H_DISKINFO
+
 #ifndef DEVICE_STRING_SIZE
 #define DEVICE_STRING_SIZE 10
 #endif

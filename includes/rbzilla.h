@@ -19,8 +19,8 @@
 
 #define ZILLA_FALLBACK "sudo /usr/sbin/ocs-onthefly -x"
 #define ZILLA_ORIGIN "sudo clonezilla"
-#define ZILLA_COMMAND "sudo /usr/sbin/ocs-onthefly -g auto -e1 auto -e2 -r -j2 -sfsck -pa poweroff -f %s -t %s" // source and target
-#define ZILLA_SIZEDIFF_COMMAND "sudo /usr/sbin/ocs-onthefly -g auto -e1 auto -e2 -j2 -r -icds -pa poweroff -ps -f %s -t %s"
+#define ZILLA_COMMAND "sudo /usr/sbin/ocs-onthefly -g auto -e1 auto -e2 -r -j2 -sfsck -ps -pa poweroff -f %s -t %s" // source and target
+#define ZILLA_SIZEDIFF_COMMAND "sudo /usr/sbin/ocs-onthefly -g auto -e1 auto -e2 -r -j2 -sfsck -ps -icds -k1 -pa poweroff -ps -f %s -t %s"
 
 #define MAX_DISK_LABEL_SIZE 12 // with null terminator
 #define MAX_PARTITIONS_PER_DISK 128 // rfc max of 128 partitions per any disk
@@ -50,6 +50,7 @@ void start_color(int color);
 void end_color();
 void reset_counts();
 void show_menu();
+void copy_disks(int reverse);
 
 /*
 typedef struct Partition

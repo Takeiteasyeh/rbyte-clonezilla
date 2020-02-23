@@ -21,6 +21,8 @@
 #include "rbzilla.h"
 #include "diskinfo.h"
 
+
+
 //#define DEBUG
 
 Disklabel *labelarray[100*sizeof(Disklabel)];
@@ -146,7 +148,7 @@ int main(int argc, char *argv[])
 	if (sourcedisk == NULL && targetdisk == NULL)
 	{
 		start_color(RED);
-		printf("No SOURCE and no TARGET disk were automatically detected -- Please choose an option:\n");
+		printf("No SOURCE and no TARGET disk were automatically detected.\n");
 		start_color(RESET);
 		show_menu();
 		exit(1); // there is nothing for you after the menu
@@ -156,7 +158,7 @@ int main(int argc, char *argv[])
 	if (sourcedisk == NULL)
 	{
 		start_color(RED);
-		printf("No SOURCE disk was automatically detected -- Please choose an option:\n");
+		printf("No SOURCE disk(of NTFS) was found automagically.\n");
 		start_color(RESET);
 		show_menu();
 		exit(1); // there is nothing for you after the menu
@@ -165,7 +167,7 @@ int main(int argc, char *argv[])
 	if (targetdisk == NULL)
 	{
 		start_color(RED);
-		printf("No TARGET disk was automatically detected -- Please choose an option:\n");
+		printf("No TARGET disk was automatically detected.\n");
 		start_color(RESET);
 		show_menu();
 		exit(1); // there is nothing for you after the menu
@@ -218,7 +220,7 @@ int main(int argc, char *argv[])
 
 	//char input = getchar();
 	char cmd[300];
-	sprintf(cmd, ZILLA_COMMAND, source, destination);
+	//sprintf(cmd, ZILLA_COMMAND, source, destination);
 	
 	while (1)
 	{
@@ -229,17 +231,51 @@ int main(int argc, char *argv[])
 		switch (input)
 		{
 			case 'y':
-			case 'Y': printf("Execute: %s\n", cmd);
-			//	system(cmd); // dont run the actual command during debug pls
-				exit(1); // no reach
+			case 'Y': 
 			
-			case 'n':
-			case 'N': printf("Abort; Swapping to fallback.\n");
-					system(ZILLA_FALLBACK);
-					exit(1);
+			// which command do we run? same-size disk or different sized disks.
+			if (source_target_size_difference == 0)
+			{
+				sprintf(cmd, ZILLA_COMMAND, sourcedisk->device, targetdisk->device);
+				printf("Execute: %s\n", cmd);
+				system(cmd); // dont run the actual command during debug pls
+				exit(1); // no reach
+			}
+
+			else
+			{
+				/* sizes are different so appropriate it as necessary. */
+				sprintf(cmd, ZILLA_SIZEDIFF_COMMAND, sourcedisk->device, targetdisk->device);
+				printf("Execute: %s\n", cmd);
+				system(cmd); // dont run the actual command during debug pls
+				exit(1); // no reach
+			}
+			
+			case 'r':
+			case 'R':
+				if (source_target_size_difference == 0)
+				{
+					sprintf(cmd, ZILLA_COMMAND, targetdisk->device, sourcedisk->device);
+					printf("Execute: %s\n", cmd);
+					system(cmd); // dont run the actual command during debug pls
+					exit(1); // no reach
+				}
+
+				else
+				{
+					sprintf(cmd, ZILLA_SIZEDIFF_COMMAND, targetdisk->device, sourcedisk->device);
+					printf("Execute: %s\n", cmd);
+					system(cmd); // dont run the actual command during debug pls
+					exit(1); // no reach
+				}
+			
+			case 'm':
+			case 'M':
+				show_menu();
+				exit(0);
 
 			default:
-				printf("what you just say to me? try 'Y' or 'N': ");
+				printf("Say whut mate? Try 'Y' or 'R' or 'M': ");
 				break;
 		}
 	}
@@ -260,31 +296,133 @@ void show_menu()
 {
 	start_color(BLUE);
 	printf("\n*************** MENU ***************\n");
-	printf("* 1) Clone source to target.\n");
-	printf("* 2) Clone ATA to USB disk (aka reverse).\n");
-	printf("* 3) Manually choose source/target disks.\n");
+
+	if (targetdisk == NULL || sourcedisk == NULL)
+	{
+		start_color(RED);
+		printf("* 1) [cant] Clone source to target.\n");
+		printf("* 2) [cant] Clone ATA to USB disk (aka reverse).\n");
+
+		start_color(GREEN);
+		printf("* 3) [recommended] Manually choose source/target disks.\n");
+		start_color(BLUE);
+
+	}
+	
+	else
+	{
+		printf("* 1) Clone source to target.\n");
+		printf("* 2) Clone ATA to USB disk (aka reverse).\n");
+		printf("* 3) Manually choose source/target disks.\n");
+	}
+
 	printf("* 4) List all available disks.\n");
 	printf("* 5) Start Clonezilla GUI.\n");
 	printf("* 6) Quit to console.\n");
-	printf("* 7) Shutdown.");
+	printf("* 7) Shutdown.\n");
 	printf("**************** END ****************\n");
 
 	start_color(GREEN);
 	printf("Please choose a number: ");
 	start_color(RESET);
 
-	printf("\n");
+	//printf("\n");
 	while (1)
 	{ 
 		char input = getchar();
 
 		switch (input)
 		{
-			case 1:
-			
+			case '1':
+				if (sourcedisk == NULL || targetdisk == NULL)
+				{
+					start_color(RED);
+					printf("Error: There is no source/target disk selected; Try again: ");
+					start_color(RESET);
+					continue;
+				}
+
+				else
+				{
+					copy_disks(0);
+					exit(1);
+				}
+
+			case '2':
+				if (sourcedisk == NULL || targetdisk == NULL)
+				{
+					start_color(RED);
+					printf("Error: There is no source/target disk selected; Try again: ");
+					start_color(RESET);
+					continue;
+				}
+
+				else
+				{
+					copy_disks(1); // reverse flag
+					exit(1);
+				}
+
+			case '3':
+					// to come;
+					show_menu(); // refresh menu, maybe clear screen first next time
+					break;
+
+			case '4':
+					// to come, make function for this
+
+					break;
+
+			case '5':
+					system(ZILLA_ORIGIN);
+					exit(1);
+
+			case '6':
+				printf("Falling to console... Bye!\n\n");
+				exit(1);
+
+			case '7':
+				start_color(RED);
+				printf("Performing shutdown! Please come again!\n");
+				start_color(RESET);
+				system("shutdown -h now");
+				exit(1);
+
+			default:
+				start_color(RED);
+				printf("invalid option; try again: ");
+				start_color(RESET);
+				continue;
 		}
 
 
+	}
+}
+
+void copy_disks(int reverse)
+{
+	char cmd[200];
+
+	// our caller should check these before we get here, but just incase.
+	if (sourcedisk == NULL || targetdisk == NULL)
+		return;
+
+	if (source_target_size_difference == 0)
+	{
+		sprintf(cmd, ZILLA_COMMAND, reverse == 0 ? sourcedisk->device : targetdisk->device,
+									reverse == 0 ? targetdisk->device : sourcedisk->device);
+		printf("Execute: %s\n", cmd);
+		system(cmd); // dont run the actual command during debug pls
+		exit(1); // no reach
+	}
+
+	else
+	{
+		sprintf(cmd, ZILLA_SIZEDIFF_COMMAND, 	reverse == 0 ? sourcedisk->device : targetdisk->device,
+												reverse == 0 ? targetdisk->device : sourcedisk->device);
+		printf("Execute: %s\n", cmd);
+		system(cmd); // dont run the actual command during debug pls
+		exit(1); // no reach
 	}
 }
 
