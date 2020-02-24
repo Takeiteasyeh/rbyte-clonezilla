@@ -52,6 +52,7 @@ void reset_counts();
 void manually_set_disks();
 void show_menu();
 void show_disks();
+void show_about();
 void copy_disks(int reverse);
 
 /*

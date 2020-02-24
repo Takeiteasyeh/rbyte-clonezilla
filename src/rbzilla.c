@@ -50,6 +50,7 @@ int main(int argc, char *argv[])
 {
    	start_color(YELLOW); // sets console color
     printf("RBZilla mod %s by Ray Lynk - rlynk@hosthelp.ca ##\n", VERSION);
+	printf("Built on %s\n", __TIMESTAMP__);
     printf("Doing detecty things....\n\n");
 	start_color(RESET); // reset the color to defaults. DO NOT FORGET, ESTI!
 
@@ -299,15 +300,22 @@ void show_menu()
 	
 	else
 	{
+		start_color(GREEN);
 		printf("* 1) Clone source to target.\n");
 		printf("* 2) Clone ATA to USB disk (aka reverse).\n");
+		start_color(MAGENTA);
 		printf("* 3) Manually choose source/target disks.\n");
 	}
 
 	printf("* 4) List all available disks.\n");
-	printf("* 5) Start Clonezilla GUI.\n");
-	printf("* 6) Quit to console.\n");
-	printf("* 7) Shutdown.\n");
+	printf("* 5) Refresh list of disks.\n");
+
+	printf("* 6) About RBZilla Mod.\n");
+	start_color(YELLOW);
+	printf("* 7) Start Clonezilla GUI.\n");
+	printf("* 8) Quit to console.\n");
+	printf("* 9) Shutdown.\n");
+	start_color(BLUE);
 	printf("**************** END ****************\n");
 
 	start_color(GREEN);
@@ -317,17 +325,25 @@ void show_menu()
 	//printf("\n");
 	while (1)
 	{ 
+	//	int input = 0;
+	//			char line[4];
+
+	//	fgets(line, sizeof(line), stdin);
+	//	sscanf(line, "%d", &input);
 		char input = getchar();
 
 		switch (input)
 		{
+			case '0':
+				continue;
+				
 			case '1':
 				if (sourcedisk == NULL || targetdisk == NULL)
 				{
 					start_color(RED);
 					printf("Error: There is no source/target disk selected; Try again: ");
 					start_color(RESET);
-					continue;
+					break;
 				}
 
 				else
@@ -342,7 +358,7 @@ void show_menu()
 					start_color(RED);
 					printf("Error: There is no source/target disk selected; Try again: ");
 					start_color(RESET);
-					continue;
+					break;
 				}
 
 				else
@@ -352,30 +368,42 @@ void show_menu()
 				}
 
 			case '3':
-					// to come;
-					manually_set_disks();
-					show_menu(); // refresh menu, maybe clear screen first next time
-					break;
+				// to come;
+				manually_set_disks();
+				show_menu(); // refresh menu, maybe clear screen first next time
+				break;
 
 			case '4':
-					// to come, make function for this
-					show_disks();
-					show_menu();
-					exit(1);
+				// to come, make function for this
+				show_disks();
+				show_menu();
+				exit(1);
 
 			case '5':
-					system(ZILLA_ORIGIN);
-					exit(1);
+				start_color(YELLOW);
+				printf("Restarting RBZilla...\n\n");
+				start_color(RESET);
+				system("rbzilla");
+				exit(1);
 
 			case '6':
+				show_about();
+				show_menu();
+				break;
+
+			case '7':
+				system(ZILLA_ORIGIN);
+				exit(1);
+
+			case '8':
 				printf("Falling to console... Bye!\n\n");
 				exit(1);
 
-			case '7':
+			case '9':
 				start_color(RED);
 				printf("Performing shutdown! Please come again!\n");
 				start_color(RESET);
-				//system("shutdown -h now");
+				system("shutdown -h now");
 				exit(1);
 			case '\n':
 				break;
@@ -391,18 +419,180 @@ void show_menu()
 	}
 }
 
+void show_about()
+{
+	start_color(YELLOW);
+	printf("\nRBZilla mod %s by Ray Lynk - rlynk@hosthelp.ca ##\n", VERSION);
+	printf("Built on %s\n", __TIMESTAMP__);
+	printf("\nFor updates, visit https://www.hosthelp.ca/rbzilla/\n\n");
+	start_color(RESET);
+}
+
 void manually_set_disks()
 {
+	_diskinfo *p;
 	system("clear");
 	show_disks();
+	sourcedisk = NULL;
+	targetdisk = NULL;
 
-	start_color(GREEN);
+	start_color(BLUE);
 	printf("Please choose disk # for source: ");
+	start_color(RESET);
+
+	//size_t bufsize = 4 // 12\n\0;
+	int waiting = YES; // used for our 2 loops
+
+	while (waiting)
+	{
+		
+		//char *buf = input;
+	//	int asnum = 0;
+
+		int input;
+		char line[4];
+
+		fgets(line, sizeof(line), stdin);
+		sscanf(line, "%d", &input);
+		//int asnum = 
+
+		if (input == '\n')
+			continue;
+
+		if (input == 0)
+		{
+			continue;
+		}
+
+		if (input > disk_count)
+		{
+			start_color(RED);
+			printf("Error: There are not that many disks! Try again: ");
+			start_color(RESET);
+			continue;
+		}
+
+		int actualcount = 1;
+
+		for (int i = 0; i < disk_count; i++)
+		{
+			p = &disks[i];
+
+			// ignore partitions in their entirety.
+			if (p->is_partition == YES)
+				continue;
+
+			if (actualcount == input)
+			{
+				sourcedisk = p; // set source disk global
+
+				start_color(GREEN);
+				printf(">> Source: %s on %s @ %d GiB [%s - %s] {serial: %s}\n\n", sourcedisk->device, sourcedisk->bus,
+				sourcedisk->size_gb, sourcedisk->vendor, sourcedisk->model, sourcedisk->serial);
+
+				start_color(RESET);
+				waiting = NO;
+				break;
+			}
+
+			actualcount++;
+		}
+
+		if (waiting)
+		{
+			// we should have broken out of here.. we obviously didnt get a valid source
+			start_color(RED);
+			printf("Error: Unknown Disk; Please try again: ");
+			start_color(RESET);
+		}
+
+	} // end source wait
+
+	// get destination disk now
+	start_color(BLUE);
+	printf("Please choose disk # for target: ");
+	start_color(RESET);
+
+	waiting = YES; // reuse the variable from sourcewait
+
+	while (waiting)
+	{
+		int input;
+		char line[4];
+
+		fgets(line, sizeof(line), stdin);
+		sscanf(line, "%d", &input);
+
+		if (input == '\n')
+			continue;
+
+		if (input == 0)
+		{
+			start_color(RED);
+			printf("Error: Please input a numerical value: ");
+			start_color(RESET);
+			continue;
+		}
+
+		if (input > disk_count)
+		{
+			start_color(RED);
+			printf("Error: There are not that many disks! Try again: ");
+			start_color(RESET);
+			continue;
+		}
+
+		int actualcount = 1;
+
+		for (int i = 0; i < disk_count; i++)
+		{
+			p = &disks[i];
+
+			// ignore partitions in their entirety.
+			if (p->is_partition == YES)
+				continue;
+
+			if (actualcount == input)
+			{
+				// make sure we arent also the source disk
+				if (sourcedisk == p)
+				{
+					start_color(RED);
+					printf("Error: Target and Source cannot be same disk!\n");
+					return;
+				}
+
+				targetdisk = p; // set target disk global
+
+				start_color(GREEN);
+				printf(">> Target: %s on %s @ %d GiB [%s - %s] {serial: %s}\n", targetdisk->device, targetdisk->bus,
+				targetdisk->size_gb, targetdisk->vendor, targetdisk->model, targetdisk->serial);
+				start_color(RESET);
+				waiting = NO;
+				break;
+			}
+
+			actualcount++;
+		}
+
+		if (waiting)
+		{
+		// we should have broken out of here.. we obviously didnt get a valid source
+			start_color(RED);
+			printf("Error: Unknown Disk; Please try again: ");
+			start_color(RESET);
+		}
+	} // end target wait
 }
+/*
+int ask_for_number()
+{
+
+} */
 void show_disks()
 {
 	_diskinfo *p;
-	int count;
+	int count = 0;
 
 	system("clear");
 	start_color(YELLOW);
@@ -423,17 +613,19 @@ void show_disks()
 			printf("\n%d) %s on %s @ %d GiB [%s - %s] {serial: %s}\n", count, p->device, p->bus,
 				p->size_gb, p->vendor, p->model, p->serial);
 
-			if (strcmp(p->device, sourcedisk->device) == 0)
+			//if (strcmp(p->device, sourcedisk->device) == 0)
+			if (p == sourcedisk)
 			{
 				start_color(YELLOW);
-				printf("   I am currently source drive.");
+				printf("   I am currently source drive.\n");
 
 			}
 
-			else if (strcmp(p->device, targetdisk->device) == 0)
+			//else if (strcmp(p->device, targetdisk->device) == 0)
+			else if (p == targetdisk)
 			{
 				start_color(YELLOW);
-				printf("   I am currently target drive.");
+				printf("   I am currently target drive.\n");
 
 			}
 
