@@ -177,9 +177,9 @@ int main(int argc, char *argv[])
 	start_color(BLUE);
 	printf("Please review the following and choose an option to continue:\n");
 	start_color(GREEN);
-	printf(">> Source: %s on %s @ %d GiB [%s - %s] {serial: %s}\n", sourcedisk->device, sourcedisk->bus,
+	printf("> Source: %s on %s @ %d GiB [%s - %s] {sn: %s}\n", sourcedisk->device, sourcedisk->bus,
 				sourcedisk->size_gb, sourcedisk->vendor, sourcedisk->model, sourcedisk->serial);
-	printf(">> Target: %s on %s @ %d GiB [%s - %s] {serial: %s}\n", targetdisk->device, targetdisk->bus,
+	printf("> Target: %s on %s @ %d GiB [%s - %s] {sn: %s}\n", targetdisk->device, targetdisk->bus,
 				targetdisk->size_gb, targetdisk->vendor, targetdisk->model, targetdisk->serial);
 	
 	// check to see if we need special flags due to differences in disk sizes
@@ -302,7 +302,7 @@ void show_menu()
 	{
 		start_color(GREEN);
 		printf("* 1) Clone source to target.\n");
-		printf("* 2) Clone ATA to USB disk (aka reverse).\n");
+		printf("* 2) Clone target to source. (aka reverse).\n");
 		start_color(MAGENTA);
 		printf("* 3) Manually choose source/target disks.\n");
 	}
@@ -583,6 +583,16 @@ void manually_set_disks()
 			start_color(RESET);
 		}
 	} // end target wait
+
+	// update the size of our devices so we properly issue the right command
+	if (targetdisk->size_gb == sourcedisk->size_gb)
+		source_target_size_difference = 0;
+
+	else
+	{
+		source_target_size_difference = 1;
+	}
+	
 }
 /*
 int ask_for_number()
