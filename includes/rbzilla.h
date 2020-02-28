@@ -11,51 +11,51 @@
 *
 * description:	Include file for the main application.	
 */ 
+#define H_RBZILLA
 
 #define YES 1
 #define NO 0
-#define VERSION "1.1-allop"
+#define VERSION "2.0"
+
 #define ZILLA_FALLBACK "sudo /usr/sbin/ocs-onthefly -x"
-#define ZILLA_COMMAND "sudo /usr/sbin/ocs-onthefly -g auto -e1 auto -e2 -r -j2 -sfsck -pa poweroff -f %s -t %s" // source and target
+#define ZILLA_ORIGIN "sudo clonezilla"
+#define ZILLA_COMMAND "sudo /usr/sbin/ocs-onthefly -g auto -e1 auto -e2 -r -j2 -sfsck -ps -pa poweroff -f %s -t %s" // source and target
+#define ZILLA_SIZEDIFF_COMMAND "sudo /usr/sbin/ocs-onthefly -g auto -e1 auto -e2 -r -j2 -sfsck -ps -icds -k1 -pa poweroff -ps -f %s -t %s"
+
 #define MAX_DISK_LABEL_SIZE 12 // with null terminator
 #define MAX_PARTITIONS_PER_DISK 128 // rfc max of 128 partitions per any disk
 #define NO_FLASH_SOURCES 1 // do not allow drives under 64gib to act as source media
-#define MAX_FILE_READ_SIZE 
+#define MAX_FILE_READ_SIZE
 
-/* definitions for the color profiles, including reset */
+#ifndef DEVICE_STRING_SIZE
+#define DEVICE_STRING_SIZE 10 // max size of the device 'sda / nvme0' including null term.
+#endif
+/* definitions for the color profiles, including RESET -- use it! */
 #define RED     1
 #define BLUE    2
 #define GREEN   3
 #define YELLOW  4
 #define MAGENTA 5
-#define RESET   6
+#define RESET   6 // DO NOT FORGET, ESTI! YOU MUST ALWAYS CALL THIS AT SOME POING AFTER!!
 
 #define SRC_MODEL   "/sys/class/block/%s/device/model"
 #define SRC_VENDOR  "/sys/class/block/%s/device/vendor"
 
 int main(int argc, char *argv[]);
+void multiple_sources();
 void parse_partitions();
 void parse_disk_labels();
 void parse_disk_info();
 void start_color(int color);
 void end_color();
+void reset_counts();
+void manually_set_disks();
+void show_menu();
+void show_disks();
+void show_about();
+void copy_disks(int reverse);
 
-
-typedef struct Disk
-{
-    char device[4];
-	char vendor[100];
-	char model[100];
-	char serial[100];
-
-    //char label[MAX_DISK_LABEL_SIZE]; // 11 and null terminator
-    unsigned long long int size_gb;
-    unsigned short int partcount;
-    unsigned short int source;
-    unsigned short int target;
-
-} Disk;
-
+/*
 typedef struct Partition
 {
     struct Partition *next, *prev;
@@ -64,16 +64,8 @@ typedef struct Partition
     unsigned long long int size;
     unsigned long long int free;
 } Partition;
+*/
 
-typedef struct Disklabel
-{
-    char device[6];
-    char label[MAX_DISK_LABEL_SIZE];
-} Disklabel;
-
-Disklabel *create_label(char *disk, char *label);
-Disk create_disk(char *dev);
-Partition create_part(Disk *disk, char *part, char *label);
 /*
 char *ascii = "                                                                           
                  `Ny-                                   `/dy               
@@ -108,7 +100,7 @@ char *ascii = "
     -hmmdddhhyyyyhdmM+. :Ny     sm.  :No  -Nh   yN- .+Mmdhyyyyhhdddmmh-    
      `/hNMMMMMMMs. `dh   :N/    ..   `-   -+`  /N:   hd. .sMMMMMMMNh/`     
         .dMMMMN+    `-    `                     `    .`    +NMMMMd.        
-         mMMMh.                                             .hMMMm         
+         mMMMh.     Have you eaten your shreddies today?   .hMMMm         
         .MMm:                                                 :mMM-        
         :No`                                                   `oN:        
          `                                                       `         
