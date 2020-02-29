@@ -5,8 +5,8 @@
 * ██╔══██╗██╔══██╗ ███╔╝  ██║██║     ██║     ██╔══██║    ██║╚██╔╝██║██║   ██║██║  ██║
 * ██║  ██║██████╔╝███████╗██║███████╗███████╗██║  ██║    ██║ ╚═╝ ██║╚██████╔╝██████╔╝
 * ╚═╝  ╚═╝╚═════╝ ╚══════╝╚═╝╚══════╝╚══════╝╚═╝  ╚═╝    ╚═╝     ╚═╝ ╚═════╝ ╚═════╝ 
-* file version: 	1.1-allop
-* file modified: 	Feb 2020
+* file version: 	2.1
+* file modified: 	Mar 2020
 * author:			Ray Lynk (https://www.hosthelp.ca/rbzilla/)
 *
 * description:	Include file for the main application.	
