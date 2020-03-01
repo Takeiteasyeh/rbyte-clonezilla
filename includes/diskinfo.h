@@ -11,6 +11,7 @@
 *
 * description: basic include handling DiskInfo struct and holding UDEVADM command string.		
 */
+#ifndef H_DISKINFO
 #define H_DISKINFO
 
 #ifndef DEVICE_STRING_SIZE
@@ -26,6 +27,7 @@ typedef struct DiskInfo
 	//enum filetype { exFat, fat16, fat32, ntfs, ext2, ext3, ext4, ufs, udf };
 	char device[DEVICE_STRING_SIZE]; // /dev/sdx
 	struct DiskInfo *myroot;
+	struct _smart *smart;
 	char root[5];
 	char label[12];
 	char vendor[100];
@@ -47,3 +49,5 @@ typedef struct DiskInfo
 } _diskinfo;
 
 _diskinfo *get_disk_info(const char *device);
+
+#endif

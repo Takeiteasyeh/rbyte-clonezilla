@@ -19,7 +19,7 @@ src/rbzilla.o: src/rbzilla.c
 src/diskinfo.o: src/diskinfo.c
 	$(CC) $(FLAGS) src/diskinfo.c -o src/diskinfo.o $(CFLAGS)
 
-src/diskinfo.o: src/smart.c
+src/smart.o: src/smart.c
 	$(CC) $(FLAGS) src/smart.c -o src/smart.o $(CFLAGS)
 
 clean:

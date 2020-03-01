@@ -54,6 +54,7 @@ void show_menu();
 void show_disks();
 void show_about();
 void copy_disks(int reverse);
+void yarrr();
 
 /*
 typedef struct Partition

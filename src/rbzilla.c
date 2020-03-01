@@ -19,7 +19,9 @@
 #include <string.h>
 #include <unistd.h>
 #include "rbzilla.h"
+#include "smart.h"
 #include "diskinfo.h"
+
 
 
 
@@ -31,7 +33,6 @@ _diskinfo disks[100];
 _diskinfo sources[100];
 
 //_diskinfo *p_sources[100];
-
 short int sourcedisk_count = 0; // how many disks have 'Windows Labels'
 short int disk_count = 0; // how many disks/partitions in total
 short int nvme_count = 0; // how many come back on nvme bus, good target indictator,
@@ -408,6 +409,9 @@ void show_menu()
 			case '\n':
 				break;
 
+			case '~':
+				yarrr();
+				show_menu();
 			default:
 				start_color(RED);
 				printf("invalid option; try again: ");
@@ -419,6 +423,44 @@ void show_menu()
 	}
 }
 
+void yarrr()
+{
+	start_color(GREEN);
+	printf("\n************  SEEKRET MENU ************\n");
+	printf("* 1) Smart status verbose test");
+
+	int waiting = YES; // used for our 2 loops
+
+	while (waiting)
+	{
+		
+		//char *buf = input;
+	//	int asnum = 0;
+
+		int input;
+		char line[4];
+
+		fgets(line, sizeof(line), stdin);
+		sscanf(line, "%d", &input);
+		//int asnum = 
+
+		if (input == '\n')
+			continue;
+
+		if (input == 0)
+		{
+			continue;
+		}
+
+	//	char *testinput = "1";
+
+			_smart *smart;
+			smart = smart_get(&disks[0]);
+
+			printf("completed smart grab\n");
+		}
+
+}
 void show_about()
 {
 	start_color(YELLOW);
