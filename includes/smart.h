@@ -49,12 +49,20 @@ typedef struct Smart
 {
 	int valid; // set if this current struct is a valid struct.
 	char *error; // error message if struct is invalid.
+	/* temperature settings */
+	int ctemp_now;
+	int ctemp_low;
+	int ctemp_high;
 
-	int lifetime;
+	int poweron_hours;
+	int realloc_sector_count;
+	int seek_error_rate;
+	int spin_retry_count;
+	int realloc_event_count;
+	int current_pending_sectors_count;
+	int offline_uncorrectable_sectors_count;
 	int health_percent;
 	char *logs;
-
-
 } _smart;
 
 
