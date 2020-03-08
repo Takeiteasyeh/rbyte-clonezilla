@@ -28,8 +28,11 @@
 # v2.1 - March 29, 2020
 ###################
 
++ Added an externals/ directory with modified clonezilla files for manual creation.
 * Fixed incorrect date on v2.0 release.
-? The completed sound has been updated to be less... dramatic.
+* The completed sound has been disabled.
+* We now reboot the machine as opposed to shutting down after clone.
+
 ? We now offer a disk wipe option (default confirm 'w' when only target drive exists.)
 ? We now display disk health percentage in drive listing.
 ? We now support viewing of different S.M.A.R.T stats.

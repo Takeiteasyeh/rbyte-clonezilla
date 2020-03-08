@@ -19,8 +19,8 @@
 
 #define ZILLA_FALLBACK "sudo /usr/sbin/ocs-onthefly -x"
 #define ZILLA_ORIGIN "sudo clonezilla"
-#define ZILLA_COMMAND "sudo /usr/sbin/ocs-onthefly -g auto -e1 auto -e2 -r -j2 -sfsck -ps -pa poweroff -f %s -t %s" // source and target
-#define ZILLA_SIZEDIFF_COMMAND "sudo /usr/sbin/ocs-onthefly -g auto -e1 auto -e2 -r -j2 -sfsck -ps -icds -k1 -pa poweroff -ps -f %s -t %s"
+#define ZILLA_COMMAND "sudo /usr/sbin/ocs-onthefly -g auto -e1 auto -e2 -r -j2 -sfsck -pa reboot -f %s -t %s" // source and target
+#define ZILLA_SIZEDIFF_COMMAND "sudo /usr/sbin/ocs-onthefly -g auto -e1 auto -e2 -r -j2 -sfsck -icds -k1 -pa reboot -ps -f %s -t %s"
 
 #define MAX_DISK_LABEL_SIZE 12 // with null terminator
 #define MAX_PARTITIONS_PER_DISK 128 // rfc max of 128 partitions per any disk
@@ -54,6 +54,10 @@ void show_menu();
 void show_disks();
 void show_about();
 void copy_disks(int reverse);
+
+void get_user_number(int *number); // sets a number pointer to user input
+void get_user_string(char *s); // sets a char array to user input
+
 void yarrr();
 
 /*

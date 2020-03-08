@@ -175,7 +175,7 @@ int main(int argc, char *argv[])
 	}
 
 	// ready to move forward, give the user our last option
-	start_color(BLUE);
+	start_color(YELLOW);
 	printf("Please review the following and choose an option to continue:\n");
 	start_color(GREEN);
 	printf("> Source: %s on %s @ %d GiB [%s - %s] {sn: %s}\n", sourcedisk->device, sourcedisk->bus,
@@ -284,7 +284,7 @@ int main(int argc, char *argv[])
 
 void show_menu()
 {
-	start_color(BLUE);
+	start_color(YELLOW);
 	printf("\n*************** MENU ***************\n");
 
 	if (targetdisk == NULL || sourcedisk == NULL)
@@ -295,7 +295,7 @@ void show_menu()
 
 		start_color(GREEN);
 		printf("* 3) [recommended] Manually choose source/target disks.\n");
-		start_color(BLUE);
+		start_color(YELLOW);
 
 	}
 	
@@ -312,11 +312,11 @@ void show_menu()
 	printf("* 5) Refresh list of disks.\n");
 
 	printf("* 6) About RBZilla Mod.\n");
-	start_color(YELLOW);
+	start_color(RESET);
 	printf("* 7) Start Clonezilla GUI.\n");
 	printf("* 8) Quit to console.\n");
 	printf("* 9) Shutdown.\n");
-	start_color(BLUE);
+	start_color(YELLOW);
 	printf("**************** END ****************\n");
 
 	start_color(GREEN);
@@ -478,7 +478,7 @@ void manually_set_disks()
 	sourcedisk = NULL;
 	targetdisk = NULL;
 
-	start_color(BLUE);
+	start_color(YELLOW);
 	printf("Please choose disk # for source: ");
 	start_color(RESET);
 
@@ -551,7 +551,7 @@ void manually_set_disks()
 	} // end source wait
 
 	// get destination disk now
-	start_color(BLUE);
+	start_color(YELLOW);
 	printf("Please choose disk # for target: ");
 	start_color(RESET);
 
@@ -916,7 +916,7 @@ void start_color(int color)
     switch (color)
     {
         case 1: printf("\033[0;31m"); break; // red
-        case 2: printf("\033[0;34m"); break; // blue
+        case 2: printf("\033[0;34m"); break; // YELLOW
         case 3: printf("\033[0;32m"); break; // green
         case YELLOW: printf("\033[0;33m"); break; // yellow
         case 5: printf("\033[0;35m"); break; // magenta
